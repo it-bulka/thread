@@ -5,6 +5,7 @@ import { checkExistedUser } from '@/lib/utils';
 import { fetchCommunities } from '@/services';
 import { SortOrder } from 'mongoose';
 import { Pages } from '@/consts';
+import { ErrorMessage } from '@/components/shared/ErrorMessage';
 
 interface SearchParams {
   search: string
@@ -17,12 +18,15 @@ export default async function Community ({ searchParams }: { searchParams: Searc
   const currentUser = await checkExistedUser()
   if (!currentUser) return null
 
-  const result = await fetchCommunities({
+  const fetchResult = await fetchCommunities({
     searchString: searchParams.search,
     pageNumber: searchParams.page ? Number(searchParams.page) : 1,
     pageSize: 3,
     sortBy: 'desc'
   })
+
+  if (!fetchResult.ok) return <ErrorMessage message={fetchResult.error} />
+  const result = fetchResult.data
 
   return (
     <>

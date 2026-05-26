@@ -21,6 +21,7 @@ import { UserValidation } from '@/lib/validations';
 import { useUploadThing } from '@/lib/uploadthing';
 import { Pages } from '@/consts';
 import { useRouter, usePathname } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface AccountProfileProps {
   user: {
@@ -61,13 +62,18 @@ export const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
       }
     }
 
-    await updateUser({
+    const result = await updateUser({
       authId,
       username,
       name,
       bio,
       image: data.profile_photo,
     })
+
+    if (!result.ok) {
+      toast.error(result.error)
+      return
+    }
 
     if (pathname === Pages.PROFILE_EDIT) {
       router.back()

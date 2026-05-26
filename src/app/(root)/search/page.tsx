@@ -5,6 +5,7 @@ import { UserCard } from '@/components/cards/UserCard';
 import { SearchBar } from '@/components/shared/SearchBar';
 import { Pagination } from '@/components/shared/Pagination';
 import { Pages } from '@/consts';
+import { ErrorMessage } from '@/components/shared/ErrorMessage';
 
 interface SearchParams {
   search: string
@@ -17,13 +18,16 @@ export default async function Search ({ searchParams }: { searchParams: SearchPa
   const currentUser = await checkExistedUser()
   if (!currentUser) return null
 
-  const result = await fetchUsers({
+  const fetchResult = await fetchUsers({
     currentUserId: currentUser.authId,
     searchString: searchParams.search,
     pageNumber: searchParams.page ? Number(searchParams.page) : 1,
     pageSize: 3,
     sortBy: 'desc'
   })
+
+  if (!fetchResult.ok) return <ErrorMessage message={fetchResult.error} />
+  const result = fetchResult.data
 
   return (
     <section>

@@ -15,7 +15,10 @@ export const checkExistedUser = async (redirectToOnboard: boolean = true): Promi
   const user = await currentUser();
   if (!user) redirect(Pages.SIGN_IN)
 
-  const userInfo = await fetchUser(user.id);
+  const userInfoResult = await fetchUser(user.id);
+  if (!userInfoResult.ok) throw new Error(userInfoResult.error)
+  const userInfo = userInfoResult.data
+
   if (!userInfo?.onboarded && redirectToOnboard) redirect(Pages.ONBOARDING);
 
   const userData = {

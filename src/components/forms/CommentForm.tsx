@@ -9,6 +9,7 @@ import { CommentValidation } from '@/lib/validations/ThreadValidation';
 import Image from 'next/image';
 import { addCommentToThread } from '@/services/thread';
 import { usePathname } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface ICommentForm {
   threadId: string;
@@ -27,13 +28,17 @@ export const CommentForm = ({ threadId, currentUserId, currentUserImg }: ICommen
   const pathname = usePathname()
 
   const onSubmit = form.handleSubmit(async (data) => {
-    await addCommentToThread({
+    const result = await addCommentToThread({
       threadId,
       comment: data.thread,
       userId: currentUserId,
       path: pathname
     })
 
+    if (!result.ok) {
+      toast.error(result.error)
+      return
+    }
 
     form.reset()
   })

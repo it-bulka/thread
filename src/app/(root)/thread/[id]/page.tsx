@@ -2,10 +2,14 @@ import { ThreadCard } from '@/components/cards/ThreadCard';
 import { checkExistedUser } from '@/lib/utils';
 import { getThreadById } from '@/services/thread';
 import { CommentForm } from '@/components/forms/CommentForm';
+import { ErrorMessage } from '@/components/shared/ErrorMessage';
 
 export default async function Thread ( { params } : {params:  { id: string } }) {
   const user = await checkExistedUser()
-  const thread = await getThreadById(params.id)
+  const threadResult = await getThreadById(params.id)
+
+  if (!threadResult.ok) return <ErrorMessage message={threadResult.error} />
+  const thread = threadResult.data
 
   if(!user || !thread) {
     return <>Thread not found</>

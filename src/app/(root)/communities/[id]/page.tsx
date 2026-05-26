@@ -6,12 +6,15 @@ import { ThreadTab } from '@/components/shared/ThreadTab';
 import Image from 'next/image';
 import { fetchCommunityDetails } from '@/services';
 import { UserCard } from '@/components/cards/UserCard';
+import { ErrorMessage } from '@/components/shared/ErrorMessage';
 
 export default async function Community ({ params }: {params: { id: string }}) {
   const user = await checkExistedUser()
   if(!user) return null
 
-  const communityDetails = await fetchCommunityDetails({ authOrganizationId: params.id })
+  const communityResult = await fetchCommunityDetails({ authOrganizationId: params.id })
+  if (!communityResult.ok) return <ErrorMessage message={communityResult.error} />
+  const communityDetails = communityResult.data
 
   return (
     <section>

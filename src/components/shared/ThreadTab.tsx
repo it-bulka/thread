@@ -1,6 +1,7 @@
 import { ThreadCard } from '@/components/cards/ThreadCard';
 import { IUserWithThreadsRes, ICommunityThreadsRes, IPopulatedThread } from '@/types';
 import { fetchCommunityThreads, fetchUserThreads } from '@/services';
+import { ErrorMessage } from '@/components/shared/ErrorMessage';
 
 interface IThreadTabProps {
   ownerId: string
@@ -10,9 +11,13 @@ export const ThreadTab = async ({ ownerId, accountType }: IThreadTabProps) => {
   let result: IUserWithThreadsRes | ICommunityThreadsRes | undefined
 
   if(accountType === 'community') {
-    result = await fetchCommunityThreads({ authOrganizationId: ownerId })
+    const fetchResult = await fetchCommunityThreads({ authOrganizationId: ownerId })
+    if (!fetchResult.ok) return <ErrorMessage message={fetchResult.error} />
+    result = fetchResult.data
   } else {
-    result = await fetchUserThreads({userId: ownerId})
+    const fetchResult = await fetchUserThreads({ userId: ownerId })
+    if (!fetchResult.ok) return <ErrorMessage message={fetchResult.error} />
+    result = fetchResult.data
   }
 
   if(!result) return null

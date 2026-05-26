@@ -5,6 +5,7 @@ import { inter } from '@/assets/fonts';
 import "../globals.css";
 import { ClerkProviderWrapper } from '@/components/ClerkProvider';
 import { Topbar, LeftSidebar, RightSidebar, BottomSidebar } from '@/components/shared';
+import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
   title: "Thread auth",
@@ -37,6 +38,7 @@ export default function RootLayout({
             </main>
 
             <BottomSidebar />
+            <Toaster theme='dark' position='top-right' richColors />
           </ThemeProvider>
         </body>
       </html>

@@ -1,25 +1,23 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
+
+const MONGO_URL = process.env.MONGO_URL!
+
+let connectPromise: Promise<typeof mongoose> | null = null
 
 export const connectToDb = async () => {
   mongoose.set('strictQuery', true)
 
-  const url = process.env.MONGO_URL
+  if (!MONGO_URL) {
+    throw new Error('No Mongo Url')
+  }
 
-  if(!url) {
-    console.log('No Mongo Url')
+  if (mongoose.connection.readyState >= 1) {
     return
   }
 
-  if(global.isDbConnected ) {
-    console.log("MongoDB already connected")
-    return
+  if (!connectPromise) {
+    connectPromise = mongoose.connect(MONGO_URL)
   }
 
-  try {
-    await mongoose.connect(url)
-    global.isDbConnected  = true
-    console.log("MongoDB connected")
-  } catch (err){
-    console.log(err)
-  }
+  await connectPromise
 }

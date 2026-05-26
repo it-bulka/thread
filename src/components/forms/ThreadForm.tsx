@@ -11,6 +11,7 @@ import { usePathname } from 'next/navigation';
 import { useOrganization } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { Pages } from '@/consts';
+import { toast } from 'sonner';
 
 export const ThreadForm = ({ authorId }: { authorId: string }) => {
   const form = useForm<z.infer<typeof ThreadValidation>>({
@@ -34,8 +35,12 @@ export const ThreadForm = ({ authorId }: { authorId: string }) => {
       communityId: organization?.id || undefined
     }
 
-    const thread = await createThread(data)
-    router.push(`${Pages.THREAD}/${thread._id}`)
+    const result = await createThread(data)
+    if (!result.ok) {
+      toast.error(result.error)
+      return
+    }
+    router.push(`${Pages.THREAD}/${result.data._id}`)
   }
 
   return (

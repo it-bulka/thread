@@ -1,26 +1,16 @@
 import { NextResponse } from 'next/server';
-export function handleError<T, K extends any[]>(asyncFunc: (...args: K) => Promise<T>, onError?: () => string): (...args: K) => Promise<T> {
+import { Result } from '@/lib/result';
+
+export function handleError<T, K extends any[]>(asyncFunc: (...args: K) => Promise<T>, onError?: () => string): (...args: K) => Promise<Result<T>> {
   return async (...args: K) => {
     try {
-      const result = await asyncFunc(...args);
-      return result;
+      const data = await asyncFunc(...args);
+      return { ok: true, data };
     } catch (err: unknown) {
-      console.log('handleError', err)
-      if (err instanceof Error) {
-        const errMsg = onError ? `${onError()}: ${err.message}` : err.message
-        throw new Error(errMsg)
-      }
-
-      if (typeof err === 'string') {
-        const errMsg = onError ? `${onError()}: ${err}` : err
-        throw new Error(errMsg);
-      }
-
-      if(onError) {
-        throw new Error(onError());
-      }
-
-      throw err;
+      const msg = err instanceof Error ? err.message : typeof err === 'string' ? err : 'Unknown error'
+      const label = onError ? `${onError()}: ${msg}` : msg
+      console.error('[handleError]', label)
+      return { ok: false, error: label }
     }
   }
 }

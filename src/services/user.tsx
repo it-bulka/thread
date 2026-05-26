@@ -45,10 +45,8 @@ export const deleteUser = handleError(async ({ userId }: IUserDelete): Promise<v
 
 export const fetchUser = handleError(async (userId: string): Promise<IUserRes | null>  => {
   await connectToDb()
-
-  let userDoc = await User.findOne({ authId: userId })
-  const user: IUserRes | null = userDoc?.toObject() || null
-  return user
+  const userDoc = await User.findOne({ authId: userId })
+  return userDoc?.toObject() ?? null
 },
   () => 'Failed to fetch user')
 
@@ -86,3 +84,12 @@ export const fetchUsers = handleError(async ({ currentUserId, searchString = '',
   return { users, totalAmount: totalUsersAmount, page: pageNumber, totalPages }
 },
 () => 'Failed to fetch users')
+
+
+export const getActivities = handleError(async () => {
+    await connectToDb()
+    const activities = await User.find()
+
+    return
+  },
+  () => 'Failed to fetch activities')
