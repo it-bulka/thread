@@ -47,7 +47,7 @@ export const deleteUser = handleError(async ({ userId }: IUserDelete): Promise<v
 
 export const fetchUser = handleError(async (userId: string): Promise<IUserRes | null>  => {
   await connectToDb()
-  const userDoc = await User.findOne({ authId: userId })
+  const userDoc = await User.findOne({ authId: userId }) ?? await User.findOne({ username: userId })
   return userDoc?.toObject() ?? null
 },
   () => 'Failed to fetch user')
