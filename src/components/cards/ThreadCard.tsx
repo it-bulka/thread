@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Pages } from '@/consts';
 import Image from 'next/image';
 import { formatDateString, cn } from '@/lib/utils';
+import { LikeButton } from '@/components/cards/LikeButton';
 
 interface IThreadCardProps {
   id: string
@@ -25,9 +26,10 @@ interface IThreadCardProps {
     };
   }[]
   isComment?: boolean
+  likes?: string[]
 }
 export const ThreadCard = ({
-  id, currentUserId, parentId, content,author,community, createdAt, comments, isComment
+  id, currentUserId, parentId, content, author, community, createdAt, comments, isComment, likes
 }: IThreadCardProps) => {
 
   return (
@@ -70,12 +72,11 @@ export const ThreadCard = ({
 
             <div className={`${isComment && "mb-10"} mt-5 flex flex-col gap-3`}>
               <div className='flex gap-3.5'>
-                <Image
-                  src='/assets/heart-gray.svg'
-                  alt='heart'
-                  width={24}
-                  height={24}
-                  className='cursor-pointer object-contain'
+                <LikeButton
+                  threadId={String(id)}
+                  currentUserId={currentUserId}
+                  initialLikes={likes ?? []}
+                  path={`/thread/${id}`}
                 />
                 <Link href={`/thread/${id}`}>
                   <Image
@@ -130,8 +131,7 @@ export const ThreadCard = ({
           ))}
 
           <Link href={`${Pages.THREAD}/${id}`}>
-            <p className='mt-1 text-subtle-medium text-bg-secondary
-            -1'>
+            <p className='mt-1 text-subtle-medium text-bg-secondary-1'>
               {comments.length} repl{comments.length > 1 ? "ies" : "y"}
             </p>
           </Link>

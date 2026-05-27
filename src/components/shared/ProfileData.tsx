@@ -51,7 +51,8 @@ export const ProfileData = ({ currentUser, userId }: IProfileDataProps) => {
               className='w-full text-bg-reverse-1'
             >
               <ThreadTab
-                ownerId={currentUser.authId}
+                ownerId={userId}
+                currentUserId={currentUser.authId}
                 accountType='user'
               />
             </TabsContent>

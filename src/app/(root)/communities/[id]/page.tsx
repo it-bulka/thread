@@ -54,6 +54,7 @@ export default async function Community ({ params }: {params: { id: string }}) {
           <TabsContent value='threads' className='w-full text-bg-reverse-1'>
             <ThreadTab
               ownerId={communityDetails.authOrganizationId}
+              currentUserId={user.authId}
               accountType='community'
             />
           </TabsContent>
@@ -76,6 +77,7 @@ export default async function Community ({ params }: {params: { id: string }}) {
           <TabsContent value='requests' className='w-full text-bg-reverse-1'>
             <ThreadTab
               ownerId={communityDetails._id}
+              currentUserId={user.authId}
               accountType='community'
             />
           </TabsContent>

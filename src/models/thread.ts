@@ -7,6 +7,7 @@ export interface IThread {
   community: Types.ObjectId
   parentId?: Types.ObjectId
   children: Types.ObjectId[]
+  likes: Types.ObjectId[]
   createdAt: Date
   updatedAt: Date
 }
@@ -32,6 +33,10 @@ export const ThreadSchema = new mongoose.Schema<IThread>({
   children: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: Models.THREAD,
+  }],
+  likes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Models.USER,
   }],
 }, { timestamps: true })
 

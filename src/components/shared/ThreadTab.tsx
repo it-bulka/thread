@@ -6,8 +6,9 @@ import { ErrorMessage } from '@/components/shared/ErrorMessage';
 interface IThreadTabProps {
   ownerId: string
   accountType: 'community' | 'user'
+  currentUserId: string
 }
-export const ThreadTab = async ({ ownerId, accountType }: IThreadTabProps) => {
+export const ThreadTab = async ({ ownerId, accountType, currentUserId }: IThreadTabProps) => {
   let result: IUserWithThreadsRes | ICommunityThreadsRes | undefined
 
   if(accountType === 'community') {
@@ -29,7 +30,7 @@ export const ThreadTab = async ({ ownerId, accountType }: IThreadTabProps) => {
         <ThreadCard
             key={thread._id}
             id={thread._id}
-            currentUserId={ownerId}
+            currentUserId={currentUserId}
             parentId={thread.parentId}
             content={thread.text}
             author={
@@ -52,6 +53,7 @@ export const ThreadTab = async ({ ownerId, accountType }: IThreadTabProps) => {
             }
             createdAt={thread.createdAt}
             comments={thread.children}
+            likes={thread.likes?.map(l => l.authId) ?? []}
           />
       ))}
     </section>

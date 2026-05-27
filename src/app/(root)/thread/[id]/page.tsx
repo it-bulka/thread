@@ -26,6 +26,7 @@ export default async function Thread ( { params } : {params:  { id: string } }) 
         community={thread.community}
         createdAt={thread.createdAt}
         comments={thread.children}
+        likes={thread.likes?.map((l: any) => l.authId) ?? []}
       />
 
       <div className='mt-7'>
@@ -48,6 +49,7 @@ export default async function Thread ( { params } : {params:  { id: string } }) 
             community={childItem.community}
             createdAt={childItem.createdAt}
             comments={childItem.children}
+            likes={childItem.likes?.map((l: any) => l.authId) ?? []}
             isComment
           />
         ))}

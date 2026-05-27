@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProviderWrapper>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body className={`${inter.variable} text-bg-reverse-1 bg-bg-1`}>
           <ThemeProvider
             attribute="class"

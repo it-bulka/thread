@@ -1,9 +1,11 @@
 'use server'
 import { connectToDb } from '@/db/connectToDb';
 import { User } from '@/models';
-import { IUserRes } from '@/types';
+import { IActivityItem, IUserRes } from '@/types';
 import { FilterQuery, SortOrder } from 'mongoose';
 import { handleError } from '@/lib/handleError';
+import Thread from '@/models/thread';
+import { Models } from '@/consts';
 
 interface IUserUpdate {
   authId: string;
@@ -86,10 +88,44 @@ export const fetchUsers = handleError(async ({ currentUserId, searchString = '',
 () => 'Failed to fetch users')
 
 
-export const getActivities = handleError(async () => {
-    await connectToDb()
-    const activities = await User.find()
+export const getActivities = handleError(async (userId: string): Promise<IActivityItem[]> => {
+  await connectToDb()
 
-    return
-  },
+  const user = await User.findOne({ authId: userId })
+  if (!user) throw 'User not found'
+
+  const userThreads = await Thread.find({ author: user._id })
+    .populate({ path: 'likes', model: Models.USER, select: 'name image authId' })
+    .lean()
+
+  const childIds = userThreads.flatMap((t: any) => t.children)
+  const replies = await Thread.find({ _id: { $in: childIds } })
+    .populate({ path: 'author', model: Models.USER, select: 'name image authId' })
+    .lean()
+
+  const replyActivities: IActivityItem[] = replies
+    .filter((r: any) => r.author.authId !== userId)
+    .map((r: any) => ({
+      type: 'reply' as const,
+      user: r.author,
+      threadId: r.parentId!.toString(),
+      createdAt: r.createdAt.toISOString()
+    }))
+
+  const likeActivities: IActivityItem[] = userThreads
+    .filter((t: any) => t.likes?.length > 0)
+    .flatMap((t: any) =>
+      (t.likes as any[])
+        .filter((l: any) => l.authId !== userId)
+        .map((l: any) => ({
+          type: 'like' as const,
+          user: l,
+          threadId: t._id.toString(),
+          createdAt: t.updatedAt.toISOString()
+        }))
+    )
+
+  return [...replyActivities, ...likeActivities]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+},
   () => 'Failed to fetch activities')

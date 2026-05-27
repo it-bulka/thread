@@ -19,8 +19,16 @@ export interface IThreadRes {
   path: string
   parentId?: string
   children?: string[]
+  likes?: string[]
   createdAt: string
   updatedAt: string
+}
+
+export interface IActivityItem {
+  type: 'like' | 'reply'
+  user: { name: string; image: string; authId: string }
+  threadId: string
+  createdAt: string
 }
 
 export interface ICommunityRes {
@@ -43,18 +51,21 @@ type Community = {
   name: string
   image: string
 }
-export interface IThreadWithChildren extends Omit<IThreadRes, 'author' | 'community' | 'children'> {
+export interface IThreadWithChildren extends Omit<IThreadRes, 'author' | 'community' | 'children' | 'likes'> {
   author: Author
   community: Community
+  likes?: Pick<IUserRes, 'authId'>[]
   children: {
     author: Author & { parentId: string },
     community: Community
+    likes?: Pick<IUserRes, 'authId'>[]
   }[]
 }
 
-export interface IPopulatedThread extends Omit<IThreadRes, 'author' | 'community' | 'children'> {
+export interface IPopulatedThread extends Omit<IThreadRes, 'author' | 'community' | 'children' | 'likes'> {
   author: Author
   community: Community
+  likes?: Pick<IUserRes, 'authId'>[]
   children: {
     author: Author,
   }[]
@@ -64,8 +75,9 @@ export interface IUserWithThreadsRes extends Omit<IUserRes, 'threads' | 'communi
   community: Pick<ICommunityRes, 'name' | 'authOrganizationId' | 'image' | '_id'>[]
 }
 
-interface IPopulatedThreadForCommunity extends Omit<IThreadRes, 'author' | 'community' | 'children'>  {
+interface IPopulatedThreadForCommunity extends Omit<IThreadRes, 'author' | 'community' | 'children' | 'likes'>  {
   author: Omit<Author, '_id'>
+  likes?: Pick<IUserRes, 'authId'>[]
   children: {
     author: Omit<Author, '_id'>,
   }[]

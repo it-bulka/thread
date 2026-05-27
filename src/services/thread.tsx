@@ -101,6 +101,11 @@ export const getThreadById = handleError(async (id: string): Promise<IThreadWith
       select: '_id authOrganizationId name image'
     })
     .populate({
+      path: 'likes',
+      model: Models.USER,
+      select: 'authId'
+    })
+    .populate({
       path: 'children',
       populate: [
         {
@@ -117,12 +122,17 @@ export const getThreadById = handleError(async (id: string): Promise<IThreadWith
             select: "_id authId name parentId image",
           },
         },
+        {
+          path: "likes",
+          model: Models.USER,
+          select: "authId",
+        },
       ],
     }).exec()
 
   return thread?.toObject()
 },
-  () => 'Failed to delete thread')
+  () => 'Failed to get thread')
 
 interface IThreadComment {
   threadId: string
@@ -155,6 +165,32 @@ export const addCommentToThread = handleError(async (params: IThreadComment): Pr
   () => 'Failed to add comment to thread')
 
 
+interface IToggleLike {
+  threadId: string
+  userId: string
+  path: string
+}
+export const toggleLike = handleError(async ({ threadId, userId, path }: IToggleLike): Promise<void> => {
+  await connectToDb()
+
+  const user = await User.findOne({ authId: userId })
+  if (!user) throw 'User not found'
+
+  const thread = await Thread.findById(threadId)
+  if (!thread) throw 'Thread not found'
+
+  const isLiked = thread.likes?.some((id: Types.ObjectId) => id.equals(user._id))
+
+  await Thread.findByIdAndUpdate(
+    threadId,
+    isLiked ? { $pull: { likes: user._id } } : { $addToSet: { likes: user._id } }
+  )
+
+  revalidatePath(path)
+},
+  () => 'Failed to toggle like')
+
+
 interface IFetchUserThreads {
   userId: string
 }
@@ -177,6 +213,11 @@ export const fetchUserThreads = handleError(async ({ userId }: IFetchUserThreads
           model: Models.USER,
           select: 'name image authId _id'
         }
+      },
+      {
+        path: 'likes',
+        model: Models.USER,
+        select: 'authId'
       }]
   })
 
@@ -209,6 +250,11 @@ export const fetchCommunityThreads = handleError(async ({ authOrganizationId }: 
             model: Models.USER,
             select: 'image authId',
           },
+        },
+        {
+          path: 'likes',
+          model: Models.USER,
+          select: 'authId',
         },
       ],
     })
