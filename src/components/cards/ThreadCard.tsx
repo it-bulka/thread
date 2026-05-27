@@ -3,6 +3,7 @@ import { Pages } from '@/consts';
 import Image from 'next/image';
 import { formatDateString, cn } from '@/lib/utils';
 import { LikeButton } from '@/components/cards/LikeButton';
+import MentionText from '@/components/ui/MentionText';
 
 interface IThreadCardProps {
   id: string
@@ -68,7 +69,7 @@ export const ThreadCard = ({
               </p>
             </div>
 
-            <p className="mt-2 text-small-regular text-bg-reverse-2">{content}</p>
+            <MentionText text={content} className="mt-2 text-small-regular text-bg-reverse-2" />
 
             <div className={`${isComment && "mb-10"} mt-5 flex flex-col gap-3`}>
               <div className='flex gap-3.5'>
