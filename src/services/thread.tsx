@@ -1,6 +1,6 @@
 'use server'
 import { Types } from 'mongoose';
-import { ICommunityThreadsRes, IThreadRes, IThreadWithChildren, IUserRepliesRes, IUserWithThreadsRes } from '@/types';
+import { ICommunityThreadsRes, ITaggedThreadsRes, IThreadRes, IThreadWithChildren, IUserRepliesRes, IUserWithThreadsRes } from '@/types';
 import Thread, {IThread } from '@/models/thread';
 import Community from '@/models/community';
 import { connectToDb } from '@/db/connectToDb';
@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { Models } from '@/consts';
 import { User } from '@/models';
 import { handleError } from '@/lib/handleError';
+import { parseMentions } from '@/lib/parseMentions';
 
 interface ICreateThread {
   text: string
@@ -33,6 +34,11 @@ export const createThread = handleError(async (param: ICreateThread): Promise<IT
     threadData.community = community._id
   }
 
+  const mentionedUsernames = parseMentions(param.text)
+  if (mentionedUsernames.length > 0) {
+    const mentionedUsers = await User.find({ username: { $in: mentionedUsernames } }, { _id: 1 })
+    threadData.taggedUsers = mentionedUsers.map(u => u._id)
+  }
 
   const threadDoc = await Thread.create(threadData)
   const thread: IThreadRes = threadDoc.toObject()
@@ -68,6 +74,11 @@ export const updateThread = handleError(async (params: IUpdateThread): Promise<I
   const updatedField: Partial<IThread> = { text, author: new Types.ObjectId(author)}
   community?._id && (updatedField.community = community?._id )
 
+  const mentionedUsernames = parseMentions(text)
+  const mentionedUsers = mentionedUsernames.length > 0
+    ? await User.find({ username: { $in: mentionedUsernames } }, { _id: 1 })
+    : []
+  updatedField.taggedUsers = mentionedUsers.map(u => u._id)
 
   const threadDoc = await Thread.findOneAndUpdate(
     { _id: new Types.ObjectId(threadId) },
@@ -150,10 +161,16 @@ export const addCommentToThread = handleError(async (params: IThreadComment): Pr
   const author = await User.findOne({ authId: params.userId })
   if(!author) throw 'No user to comment'
 
+  const mentionedUsernames = parseMentions(params.comment)
+  const taggedUsers = mentionedUsernames.length > 0
+    ? (await User.find({ username: { $in: mentionedUsernames } }, { _id: 1 })).map(u => u._id)
+    : []
+
   const commentToThread = await Thread.create({
     text: params.comment,
     author: author._id,
-    parentId: commentedThread._id
+    parentId: commentedThread._id,
+    taggedUsers,
   })
 
   commentedThread.children.push(commentToThread._id)
@@ -256,6 +273,36 @@ export const fetchUserReplies = handleError(
     return { replies: replyDocs.map(r => r.toObject()) }
   },
   () => 'Failed to fetch user replies'
+)
+
+
+interface IFetchTaggedThreads {
+  userId: string
+}
+export const fetchTaggedThreads = handleError(
+  async ({ userId }: IFetchTaggedThreads): Promise<ITaggedThreadsRes> => {
+    await connectToDb()
+
+    const user = await User.findOne({ authId: userId }).select('_id')
+    if (!user) throw 'User not found'
+
+    const threadDocs = await Thread.find({
+      taggedUsers: user._id,
+    })
+      .populate({ path: 'author', model: Models.USER, select: '_id authId name image' })
+      .populate({ path: 'community', model: Models.COMMUNITY, select: '_id authOrganizationId name image' })
+      .populate({
+        path: 'children',
+        model: Models.THREAD,
+        populate: { path: 'author', model: Models.USER, select: '_id authId name image' },
+      })
+      .populate({ path: 'likes', model: Models.USER, select: 'authId' })
+      .sort({ createdAt: 'desc' })
+      .exec()
+
+    return { threads: threadDocs.map(t => t.toObject()) }
+  },
+  () => 'Failed to fetch tagged threads'
 )
 
 
