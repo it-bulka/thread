@@ -21,7 +21,7 @@ export default async function ProfileIdLayout({
   if (!result.ok) return <ErrorMessage message={result.error} />
 
   const profileUser = result.data
-  if (!profileUser) redirect(Pages.PROFILE)
+  if (!profileUser) redirect(Pages.MY_PROFILE)
 
   const basePath = `${Pages.PROFILE}/${params.id}`
 

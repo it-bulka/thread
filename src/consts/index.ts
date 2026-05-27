@@ -4,6 +4,7 @@ export enum Pages {
   CREATE_THREAD = '/thread/create',
   COMMUNITIES = '/communities',
   PROFILE = '/profile',
+  MY_PROFILE = '/profile/me',
   PROFILE_EDIT = '/profile/edit',
   ONBOARDING = '/onboarding',
   SEARCH = '/search',
@@ -46,7 +47,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "/assets/user.svg",
-    route: Pages.PROFILE,
+    route: Pages.MY_PROFILE,
     label: "Profile",
   },
 ];

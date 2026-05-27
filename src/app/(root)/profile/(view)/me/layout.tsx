@@ -4,7 +4,7 @@ import { ProfileHeader } from '@/components/shared/ProfileHeader'
 import { ProfileTabs } from '@/components/shared/ProfileTabs'
 import { Pages } from '@/consts'
 
-export default async function ProfileLayout({ children }: { children: ReactNode }) {
+export default async function ProfileMeLayout({ children }: { children: ReactNode }) {
   const user = await checkExistedUser()
   if (!user) return null
 
@@ -19,7 +19,7 @@ export default async function ProfileLayout({ children }: { children: ReactNode 
         bio={user.bio}
       />
       <div className='mt-9'>
-        <ProfileTabs basePath={Pages.PROFILE} threadsCount={user.threads.length} />
+        <ProfileTabs basePath={Pages.MY_PROFILE} threadsCount={user.threads.length} />
         <div className='mt-9'>{children}</div>
       </div>
     </section>

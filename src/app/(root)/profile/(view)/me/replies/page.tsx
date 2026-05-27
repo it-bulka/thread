@@ -1,30 +1,31 @@
 import { checkExistedUser } from '@/lib/utils'
-import { fetchTaggedThreads } from '@/services'
+import { fetchUserReplies } from '@/services'
 import { ErrorMessage } from '@/components/shared/ErrorMessage'
 import { ThreadCard } from '@/components/cards/ThreadCard'
 
-export default async function ProfileTagged() {
+export default async function ProfileMeReplies() {
   const user = await checkExistedUser()
   if (!user) return null
 
-  const result = await fetchTaggedThreads({ userId: user.authId })
+  const result = await fetchUserReplies({ userId: user.authId })
   if (!result.ok) return <ErrorMessage message={result.error} />
 
-  const { threads } = result.data
+  const { replies } = result.data
 
-  if (!threads.length) {
-    return <p className='text-center text-base-regular text-bg-secondary-1'>No tagged threads yet</p>
+  if (!replies.length) {
+    return <p className='text-center text-base-regular text-bg-secondary-1'>No replies yet</p>
   }
 
   return (
     <section className='flex flex-col gap-10'>
-      {threads.map((thread) => (
+      {replies.map((thread) => (
         <ThreadCard
           key={thread._id}
           id={thread._id}
           currentUserId={user.authId}
           parentId={thread.parentId}
           content={thread.text}
+          isComment={true}
           author={{
             name: thread.author.name,
             image: thread.author.image,
