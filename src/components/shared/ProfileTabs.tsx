@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { profileTabs } from '@/consts'
 import { cn } from '@/lib/utils'
+import { TabBadge } from '@/components/shared/TabBadge'
 
 interface IProfileTabsProps {
   basePath: string
@@ -41,11 +42,7 @@ export const ProfileTabs = ({ basePath, threadsCount }: IProfileTabsProps) => {
               className='object-contain'
             />
             <p className='hidden md:block'>{tab.label}</p>
-            {tab.value === 'threads' && (
-              <p className='ml-1 rounded-sm bg-bg-reverse-4 px-2 py-1 !text-tiny-medium text-bg-reverse-2'>
-                {threadsCount}
-              </p>
-            )}
+            {tab.value === 'threads' && <TabBadge count={threadsCount} />}
           </Link>
         )
       })}

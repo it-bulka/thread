@@ -3,6 +3,10 @@ import { checkExistedUser } from '@/lib/utils'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { communityTabs } from '@/consts';
 import { ThreadTab } from '@/components/shared/ThreadTab';
+import { RequestsTab } from '@/components/shared/RequestsTab';
+import { JoinButton } from '@/components/shared/JoinButton';
+import { PrivacyToggle } from '@/components/shared/PrivacyToggle';
+import { TabBadge } from '@/components/shared/TabBadge';
 import Image from 'next/image';
 import { fetchCommunityDetails } from '@/services';
 import { UserCard } from '@/components/cards/UserCard';
@@ -16,6 +20,14 @@ export default async function Community ({ params }: {params: { id: string }}) {
   if (!communityResult.ok) return <ErrorMessage message={communityResult.error} />
   const communityDetails = communityResult.data
 
+  const isCreator = communityDetails.createdBy.authId === user.authId
+  const isMember = communityDetails.members.some(m => m.authId === user.authId)
+  const hasPendingRequest = communityDetails.joinRequests.some(r => r.authId === user.authId)
+
+  const visibleTabs = isCreator
+    ? communityTabs
+    : communityTabs.filter(t => t.value !== 'requests')
+
   return (
     <section>
       <ProfileHeader
@@ -26,12 +38,29 @@ export default async function Community ({ params }: {params: { id: string }}) {
         imgUrl={communityDetails.image}
         bio={communityDetails.bio}
         type='community'
+        rightContent={isCreator ? (
+          <PrivacyToggle
+            communityAuthId={communityDetails.authOrganizationId}
+            initialIsPrivate={communityDetails.isPrivate}
+          />
+        ) : undefined}
       />
+
+      {!isCreator && (
+        <div className='mt-4 flex justify-end'>
+          <JoinButton
+            communityAuthId={communityDetails.authOrganizationId}
+            currentUserAuthId={user.authId}
+            isMember={isMember}
+            hasPendingRequest={hasPendingRequest}
+          />
+        </div>
+      )}
 
       <div className='mt-9'>
         <Tabs defaultValue='threads' className='w-full'>
           <TabsList className='tab'>
-            {communityTabs.map((tab) => (
+            {visibleTabs.map((tab) => (
               <TabsTrigger key={tab.label} value={tab.value} className='tab'>
                 <Image
                   src={tab.icon}
@@ -42,10 +71,12 @@ export default async function Community ({ params }: {params: { id: string }}) {
                 />
                 <p className='hidden md:block'>{tab.label}</p>
 
-                {tab.label === "Threads" && (
-                  <p className='ml-1 rounded-sm bg-bg-reverse-1 px-2 py-1 !text-tiny-medium text-bg-reverse-2'>
-                    {communityDetails.threads.length}
-                  </p>
+                {tab.value === 'threads' && (
+                  <TabBadge count={communityDetails.threads.length} />
+                )}
+
+                {tab.value === 'requests' && communityDetails.joinRequests.length > 0 && (
+                  <TabBadge count={communityDetails.joinRequests.length} />
                 )}
               </TabsTrigger>
             ))}
@@ -74,13 +105,14 @@ export default async function Community ({ params }: {params: { id: string }}) {
             </section>
           </TabsContent>
 
-          <TabsContent value='requests' className='w-full text-bg-reverse-1'>
-            <ThreadTab
-              ownerId={communityDetails._id}
-              currentUserId={user.authId}
-              accountType='community'
-            />
-          </TabsContent>
+          {isCreator && (
+            <TabsContent value='requests' className='w-full text-bg-reverse-1'>
+              <RequestsTab
+                communityAuthId={communityDetails.authOrganizationId}
+                requests={communityDetails.joinRequests}
+              />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </section>

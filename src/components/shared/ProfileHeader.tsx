@@ -10,9 +10,10 @@ interface IProfileHeader {
   imgUrl: string
   bio: string
   type?: 'community' | 'user'
+  rightContent?: React.ReactNode
 }
 
-export const ProfileHeader = ({ currentUserId, authUserId, name, username, imgUrl, bio, type }: IProfileHeader) => {
+export const ProfileHeader = ({ currentUserId, authUserId, name, username, imgUrl, bio, type, rightContent }: IProfileHeader) => {
   return (
     <div className='flex w-full flex-col justify-start'>
       <div className='flex items-center justify-between'>
@@ -34,7 +35,7 @@ export const ProfileHeader = ({ currentUserId, authUserId, name, username, imgUr
             <p className='text-base-medium text-gray-1'>@{username}</p>
           </div>
         </div>
-        {currentUserId === authUserId && type !== "community" && (
+        {rightContent ?? (currentUserId === authUserId && type !== "community" && (
           <Link href={`${Pages.PROFILE}/edit`}>
             <div className='flex cursor-pointer gap-3 rounded-lg bg-bg-3 px-4 py-2'>
               <Image
@@ -47,7 +48,7 @@ export const ProfileHeader = ({ currentUserId, authUserId, name, username, imgUr
               <p className='text-bg-reverse-2 hidden md:block'>Edit</p>
             </div>
           </Link>
-        )}
+        ))}
       </div>
 
       <p className='mt-6 max-w-lg text-base-regular text-light-2'>{bio}</p>

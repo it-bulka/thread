@@ -1,9 +1,5 @@
-import {
-  addMemberToCommunity,
-  createCommunity, deleteCommunity, deleteMemberFromCommunity,
-  IAddMemberToCommunity,
-  type ICreateCommunity, IDeleteMemberFromCommunity, IUpdateCommunityInfo, updateCommunityInfo
-} from '@/services/communities';
+import { createCommunity, deleteCommunity, type ICreateCommunity, IUpdateCommunityInfo, updateCommunityInfo } from '@/services/communities';
+import { addMemberToCommunity, deleteMemberFromCommunity, IAddMemberToCommunity, IDeleteMemberFromCommunity } from '@/services/communityMembership';
 import { NextResponse } from 'next/server';
 import { handleApiError } from '@/lib/handleError';
 
