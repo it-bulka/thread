@@ -1,7 +1,7 @@
 'use server'
 import { connectToDb } from '@/db/connectToDb';
 import { User } from '@/models';
-import { IActivityItem, IUserRes } from '@/types';
+import { IActivityItem, ILikedThread, IUserRes } from '@/types';
 import { FilterQuery, SortOrder } from 'mongoose';
 import { handleError } from '@/lib/handleError';
 import Thread from '@/models/thread';
@@ -88,7 +88,9 @@ export const fetchUsers = handleError(async ({ currentUserId, searchString = '',
 () => 'Failed to fetch users')
 
 
-export const getActivities = handleError(async (userId: string): Promise<IActivityItem[]> => {
+export const getActivities = handleError(async (
+  userId: string, pageNumber = 1, pageSize = 10
+): Promise<{ activities: IActivityItem[], totalPages: number, page: number }> => {
   await connectToDb()
 
   const user = await User.findOne({ authId: userId })
@@ -125,7 +127,41 @@ export const getActivities = handleError(async (userId: string): Promise<IActivi
         }))
     )
 
-  return [...replyActivities, ...likeActivities]
+  const all = [...replyActivities, ...likeActivities]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+  const totalPages = Math.ceil(all.length / pageSize) || 1
+  const activities = all.slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
+
+  return { activities, totalPages, page: pageNumber }
 },
   () => 'Failed to fetch activities')
+
+
+export const getLikedThreads = handleError(async (
+  userId: string, pageNumber = 1, pageSize = 10
+): Promise<{ threads: ILikedThread[], totalPages: number, page: number }> => {
+  await connectToDb()
+
+  const user = await User.findOne({ authId: userId })
+  if (!user) throw 'User not found'
+
+  const skip = (pageNumber - 1) * pageSize
+
+  const [threads, total] = await Promise.all([
+    Thread.find({ likes: user._id })
+      .skip(skip)
+      .limit(pageSize)
+      .populate({ path: 'author', model: Models.USER, select: 'name image authId' })
+      .populate({ path: 'community', model: Models.COMMUNITY, select: 'authOrganizationId name image' })
+      .populate({ path: 'children', populate: { path: 'author', model: Models.USER, select: 'image' } })
+      .populate({ path: 'likes', model: Models.USER, select: 'authId' })
+      .lean(),
+    Thread.countDocuments({ likes: user._id })
+  ])
+
+  const totalPages = Math.ceil(total / pageSize) || 1
+
+  return { threads: threads as unknown as ILikedThread[], totalPages, page: pageNumber }
+},
+  () => 'Failed to fetch liked threads')
