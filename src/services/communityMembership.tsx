@@ -1,7 +1,8 @@
 'use server'
 import { ICommunityAccessStatus, ICommunityRes } from '@/types';
 import { connectToDb } from '@/db/connectToDb';
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
+import { Types } from 'mongoose';
 import { Community, User } from '@/models';
 import { handleError } from '@/lib/handleError';
 import { revalidatePath } from 'next/cache';
@@ -38,34 +39,20 @@ export interface IDeleteMemberFromCommunity {
 export const deleteMemberFromCommunity = handleError(async ({ communityId, userId }: IDeleteMemberFromCommunity): Promise<void> => {
   await connectToDb()
 
-  const session = await mongoose.startSession()
-  session.startTransaction()
-  try {
-    const user = await User.findOne({ authId: userId }).select('_id')
-    const community = await Community.findOne({ authOrganizationId: communityId }).select('_id')
+  const [community, user] = await Promise.all([
+    Community.findOne({ authOrganizationId: communityId }).select('_id'),
+    User.findOne({ authId: userId }).select('_id'),
+  ])
 
-    if (!user) throw new Error('Member not found')
-    if (!community) throw new Error('Community not found')
+  if (!community) throw new Error('Community not found')
+  if (!user) throw new Error('Member not found')
 
-    await Community.updateOne(
-      { _id: community._id },
-      { $pull: { members: user._id } }
-    ).session(session)
+  await Promise.all([
+    Community.updateOne({ _id: community._id }, { $pull: { members: user._id } }),
+    User.updateOne({ _id: user._id }, { $pull: { communities: community._id } }),
+  ])
 
-    await User.updateOne(
-      { _id: user._id },
-      { $pull: { communities: community._id } }
-    ).session(session)
-
-    await session.commitTransaction()
-    await session.endSession()
-
-    revalidatePath(`/communities/${communityId}`)
-  } catch (err) {
-    await session.abortTransaction()
-    await session.endSession()
-    throw err
-  }
+  revalidatePath(`/communities/${communityId}`)
 })
 
 
@@ -89,17 +76,20 @@ export const checkCommunityAccess = handleError(
   async ({ communityAuthId, userAuthId }: { communityAuthId: string; userAuthId: string })
     : Promise<ICommunityAccessStatus> => {
     await connectToDb()
-    const community = await Community.findOne({ authOrganizationId: communityAuthId })
-      .select('isPrivate members joinRequests')
-    if (!community) throw new Error('Community not found')
 
-    const user = await User.findOne({ authId: userAuthId }).select('_id')
+    const [community, user] = await Promise.all([
+      Community.findOne({ authOrganizationId: communityAuthId }).select('_id isPrivate joinRequests'),
+      User.findOne({ authId: userAuthId }).select('_id'),
+    ])
+    if (!community) throw new Error('Community not found')
     if (!user) throw new Error('User not found')
 
-    const isMember = community.members.some((m: Types.ObjectId) => m.equals(user._id))
-    const hasPendingRequest = community.joinRequests.some((r: Types.ObjectId) => r.equals(user._id))
+    const [memberDoc, hasPendingRequest] = await Promise.all([
+      Community.exists({ _id: community._id, members: user._id }),
+      Promise.resolve(community.joinRequests.some((r: Types.ObjectId) => r.equals(user._id))),
+    ])
 
-    return { isPrivate: community.isPrivate, isMember, hasPendingRequest }
+    return { isPrivate: community.isPrivate, isMember: !!memberDoc, hasPendingRequest }
   },
   () => 'Failed to check community access'
 )
@@ -113,31 +103,29 @@ export interface IManageRequest {
 export const requestToJoin = handleError(async ({ communityId, userId }: IManageRequest): Promise<void> => {
   await connectToDb()
 
-  const community = await Community.findOne({ authOrganizationId: communityId })
+  const [community, user] = await Promise.all([
+    Community.findOne({ authOrganizationId: communityId }).select('_id isPrivate joinRequests'),
+    User.findOne({ authId: userId }).select('_id'),
+  ])
   if (!community) throw new Error('Community not found')
-
-  const user = await User.findOne({ authId: userId }).select('_id')
   if (!user) throw new Error('User not found')
 
-  if (community.members.some((m: mongoose.Types.ObjectId) => m.equals(user._id))) {
-    throw new Error('Already a member of this community')
-  }
+  const alreadyMember = await Community.exists({ _id: community._id, members: user._id })
+  if (alreadyMember) throw new Error('Already a member of this community')
 
   if (!community.isPrivate) {
-    community.members.push(user._id)
-    await community.save()
-    user.communities.push(community._id)
-    await user.save()
+    await Promise.all([
+      Community.updateOne({ _id: community._id }, { $addToSet: { members: user._id } }),
+      User.updateOne({ _id: user._id }, { $addToSet: { communities: community._id } }),
+    ])
     revalidatePath(`/communities/${communityId}`)
     return
   }
 
-  if (community.joinRequests.some((r: mongoose.Types.ObjectId) => r.equals(user._id))) {
-    throw new Error('Join request already pending')
-  }
+  const alreadyRequested = community.joinRequests.some((r: mongoose.Types.ObjectId) => r.equals(user._id))
+  if (alreadyRequested) throw new Error('Join request already pending')
 
-  community.joinRequests.push(user._id)
-  await community.save()
+  await Community.updateOne({ _id: community._id }, { $addToSet: { joinRequests: user._id } })
   revalidatePath(`/communities/${communityId}`)
 },
   () => 'Failed to send join request')

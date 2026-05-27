@@ -32,7 +32,7 @@ export const checkExistedUser = async (redirectToOnboard: boolean = true): Promi
     name: userInfo ? userInfo?.name : user.firstName ?? '',
     bio: userInfo ? userInfo?.bio : '',
     image: userInfo ? userInfo?.image : user.imageUrl,
-    threads: userInfo?.threads || []
+    threads: userInfo?.threads || [],
   }
 
   return userData

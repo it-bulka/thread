@@ -8,7 +8,7 @@ import { JoinButton } from '@/components/shared/JoinButton';
 import { PrivacyToggle } from '@/components/shared/PrivacyToggle';
 import { TabBadge } from '@/components/shared/TabBadge';
 import Image from 'next/image';
-import { fetchCommunityDetails } from '@/services';
+import { fetchCommunityDetails, checkCommunityAccess } from '@/services';
 import { UserCard } from '@/components/cards/UserCard';
 import { ErrorMessage } from '@/components/shared/ErrorMessage';
 
@@ -16,13 +16,17 @@ export default async function Community ({ params }: {params: { id: string }}) {
   const user = await checkExistedUser()
   if(!user) return null
 
-  const communityResult = await fetchCommunityDetails({ authOrganizationId: params.id })
+  const [communityResult, accessResult] = await Promise.all([
+    fetchCommunityDetails({ authOrganizationId: params.id }),
+    checkCommunityAccess({ communityAuthId: params.id, userAuthId: user.authId }),
+  ])
   if (!communityResult.ok) return <ErrorMessage message={communityResult.error} />
   const communityDetails = communityResult.data
+  const { isMember, hasPendingRequest } = accessResult.ok
+    ? accessResult.data
+    : { isMember: false, hasPendingRequest: false }
 
   const isCreator = communityDetails.createdBy.authId === user.authId
-  const isMember = communityDetails.members.some(m => m.authId === user.authId)
-  const hasPendingRequest = communityDetails.joinRequests.some(r => r.authId === user.authId)
 
   const visibleTabs = isCreator
     ? communityTabs
