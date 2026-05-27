@@ -26,7 +26,7 @@ export default async function ProfileIdLayout({
   const basePath = `${Pages.PROFILE}/${params.id}`
 
   return (
-    <section>
+    <section className='scroll-area-content'>
       <ProfileHeader
         currentUserId={currentUser.authId}
         authUserId={profileUser.authId}

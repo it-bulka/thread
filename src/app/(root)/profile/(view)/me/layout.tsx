@@ -9,7 +9,7 @@ export default async function ProfileMeLayout({ children }: { children: ReactNod
   if (!user) return null
 
   return (
-    <section>
+    <section className='scroll-area-content'>
       <ProfileHeader
         currentUserId={user.authId}
         authUserId={user.authId}
