@@ -1,6 +1,6 @@
 'use client'
 import { useTransition } from 'react'
-import Image from 'next/image'
+import { UserAvatar } from '@/components/ui/UserAvatar'
 import { toast } from 'sonner'
 import { approveRequest, denyRequest } from '@/services'
 import { Button } from '@/components/ui/button'
@@ -36,7 +36,7 @@ export const RequestCard = ({ userId, name, username, image, communityAuthId }: 
     <article className='user-card'>
       <div className='user-card_avatar'>
         <div className='relative h-12 w-12'>
-          <Image
+          <UserAvatar
             src={image}
             alt='user_logo'
             fill

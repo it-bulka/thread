@@ -1,5 +1,5 @@
-import Image from 'next/image';
 import { CardButton } from '@/components/shared/CardButton';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 interface IUserCardProps {
   id: string
@@ -14,7 +14,7 @@ export const UserCard = ({ id, name, username, imgUrl, personType }: IUserCardPr
     <article className='user-card'>
       <div className='user-card_avatar'>
         <div className='relative h-12 w-12'>
-          <Image
+          <UserAvatar
             src={imgUrl}
             alt='user_logo'
             fill

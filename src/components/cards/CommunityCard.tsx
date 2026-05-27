@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { CommunityButton } from '@/components/ui/CommunityButton';
 import { Pages } from '@/consts';
 
@@ -19,7 +19,7 @@ export const CommunityCard = ({ authOrganizationId, name, username, imgUrl, bio,
     <article className='community-card'>
       <div className='flex flex-wrap items-center gap-3'>
         <Link href={`${Pages.COMMUNITIES}/${authOrganizationId}`} className='relative h-12 w-12'>
-          <Image
+          <UserAvatar
             src={imgUrl}
             alt='community_logo'
             fill
@@ -48,7 +48,7 @@ export const CommunityCard = ({ authOrganizationId, name, username, imgUrl, bio,
         {members.length > 0 && (
           <div className='flex items-center'>
             {members.map((member, index) => (
-              <Image
+              <UserAvatar
                 key={index}
                 src={member.image}
                 alt={`user_${index}`}

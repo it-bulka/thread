@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod'
 import { CommentValidation } from '@/lib/validations/ThreadValidation';
-import Image from 'next/image';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { addCommentToThread } from '@/services/thread';
 import { usePathname } from 'next/navigation';
 import { toast } from 'sonner';
@@ -74,7 +74,7 @@ export const CommentForm = ({
             render={({ field }) => (
               <FormItem className='flex w-full items-center gap-3'>
                 <FormLabel>
-                  <Image
+                  <UserAvatar
                     src={currentUserImg}
                     alt='current_user'
                     width={48}

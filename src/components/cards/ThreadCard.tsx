@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { Pages } from '@/consts';
 import Image from 'next/image';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { formatDateString, cn } from '@/lib/utils';
 import { LikeButton } from '@/components/cards/LikeButton';
 import { MentionText } from '@/components/ui/MentionText';
@@ -45,7 +46,7 @@ export const ThreadCard = ({
         <div className='flex w-full flex-1 flex-row gap-4'>
           <div className='flex flex-col items-center'>
             <Link href={`${Pages.PROFILE}/${author.authId}`} className='relative h-11 w-11'>
-              <Image
+              <UserAvatar
                 src={author.image}
                 alt='user_community_image'
                 fill
@@ -124,7 +125,7 @@ export const ThreadCard = ({
       {!isComment && comments.length > 0 && (
         <div className='ml-1 mt-3 flex items-center gap-2'>
           {comments.slice(0, 2).map((comment, index) => (
-            <Image
+            <UserAvatar
               key={index}
               src={comment.author.image}
               alt={`user_${index}`}
@@ -152,7 +153,7 @@ export const ThreadCard = ({
             {community && ` - ${community.name} Community`}
           </p>
 
-          <Image
+          <UserAvatar
             src={community.image}
             alt={community.name}
             width={14}

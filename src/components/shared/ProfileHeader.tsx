@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { Pages } from '@/consts';
 
 interface IProfileHeader {
@@ -19,7 +20,7 @@ export const ProfileHeader = ({ currentUserId, authUserId, name, username, imgUr
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-3'>
           <div className='relative h-20 w-20 object-cover'>
-            <Image
+            <UserAvatar
               src={imgUrl}
               alt='logo'
               fill
