@@ -1,8 +1,8 @@
 'use client'
 import { useTransition } from 'react'
-import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { requestToJoin, deleteMemberFromCommunity } from '@/services'
+import { CommunityButton } from '@/components/ui/CommunityButton'
 
 interface IJoinButtonProps {
   communityAuthId: string
@@ -32,23 +32,23 @@ export const JoinButton = ({ communityAuthId, currentUserAuthId, isMember, hasPe
 
   if (isMember) {
     return (
-      <Button onClick={handleLeave} disabled={isPending} variant='outline' size='sm'>
-        Leave
-      </Button>
+      <CommunityButton variant='secondary' onClick={handleLeave} disabled={isPending}>
+        Leave Community
+      </CommunityButton>
     )
   }
 
   if (hasPendingRequest) {
     return (
-      <Button disabled size='sm' className='opacity-60'>
+      <CommunityButton variant='secondary' disabled>
         Pending…
-      </Button>
+      </CommunityButton>
     )
   }
 
   return (
-    <Button onClick={handleJoin} disabled={isPending} size='sm'>
+    <CommunityButton variant='secondary' onClick={handleJoin} disabled={isPending}>
       Join Community
-    </Button>
+    </CommunityButton>
   )
 }

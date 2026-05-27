@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
+import { CommunityButton } from '@/components/ui/CommunityButton';
 import { Pages } from '@/consts';
 
 interface ICommunityCard {
@@ -40,9 +40,9 @@ export const CommunityCard = ({ authOrganizationId, name, username, imgUrl, bio,
 
       <div className='mt-5 flex flex-wrap items-center justify-between gap-3'>
         <Link href={`${Pages.COMMUNITIES}/${authOrganizationId}`}>
-          <Button size='sm' className='community-card_btn'>
+          <CommunityButton>
             View
-          </Button>
+          </CommunityButton>
         </Link>
 
         {members.length > 0 && (
