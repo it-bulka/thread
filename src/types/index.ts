@@ -51,6 +51,8 @@ export interface ICommunityRes {
   createdBy: string
   threads: string[]
   members: IUserRes[]
+  isPrivate: boolean
+  joinRequests: string[]
 }
 
 type Author = Pick<IUserRes, '_id' | 'authId' | 'image' | 'name'>
@@ -60,6 +62,13 @@ type Community = {
   authOrganizationId: string
   name: string
   image: string
+  isPrivate: boolean
+}
+
+export interface ICommunityAccessStatus {
+  isPrivate: boolean
+  isMember: boolean
+  hasPendingRequest: boolean
 }
 export interface IThreadWithChildren extends Omit<IThreadRes, 'author' | 'community' | 'children' | 'likes'> {
   author: Author
@@ -106,8 +115,9 @@ export interface ICommunityThreadsRes extends Omit<ICommunityRes, 'threads'>{
 }
 
 
-export interface ICommunityDetailsRes extends Omit<ICommunityRes, 'createdBy' | 'members'>{
+export interface ICommunityDetailsRes extends Omit<ICommunityRes, 'createdBy' | 'members' | 'joinRequests'>{
   createdBy: IUserRes
   members: Pick<IUserRes, '_id' | 'authId' | 'name' | 'username' | 'image'>[]
+  joinRequests: Pick<IUserRes, '_id' | 'authId' | 'name' | 'username' | 'image'>[]
 }
 

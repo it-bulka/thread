@@ -8,8 +8,10 @@ interface ICommunity {
   image: string
   bio: string
   createdBy?: Types.ObjectId
-  threads?: Types.ObjectId[]
-  members?: Types.ObjectId[]
+  threads: Types.ObjectId[]
+  members: Types.ObjectId[]
+  isPrivate: boolean
+  joinRequests: Types.ObjectId[]
 }
 
 const communitySchema = new mongoose.Schema<ICommunity>({
@@ -44,9 +46,19 @@ const communitySchema = new mongoose.Schema<ICommunity>({
       ref: Models.USER,
     },
   ],
+  isPrivate: {
+    type: Boolean,
+    default: false,
+  },
+  joinRequests: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: Models.USER,
+    },
+  ],
 });
 
-const Community =
-  mongoose.models?.Community || mongoose.model<ICommunity>(Models.COMMUNITY, communitySchema);
+const Community = (mongoose.models[Models.COMMUNITY] as mongoose.Model<ICommunity>)
+  || mongoose.model<ICommunity>(Models.COMMUNITY, communitySchema);
 
 export default Community;
