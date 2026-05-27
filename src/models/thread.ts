@@ -40,6 +40,9 @@ export const ThreadSchema = new mongoose.Schema<IThread>({
   }],
 }, { timestamps: true })
 
+ThreadSchema.index({ author: 1 })
+ThreadSchema.index({ likes: 1 })
+
 ThreadSchema.pre<IThread>('deleteOne', async function () {
   const childrenId = this.children
 
