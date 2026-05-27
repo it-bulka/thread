@@ -111,7 +111,8 @@
 @layer components {
   /* main */
   .main-container {
-    @apply flex min-h-screen flex-1 flex-col items-center bg-bg-1 px-6  pt-28 pb-32 lg:pb-10 sm:px-10;
+    @apply custom-scrollbar flex h-screen flex-1 flex-col items-center overflow-y-auto bg-bg-1 px-6 pt-28 pb-32 sm:px-10 lg:pb-10;
+    scrollbar-gutter: stable;
   }
 
   /* Head Text */

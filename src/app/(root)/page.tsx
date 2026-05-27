@@ -30,37 +30,39 @@ export default async function Home({ searchParams }: HomeProps) {
   const totalPages = result.ok ? result.data.totalPages : 0
 
   return (
-    <section className='flex flex-col gap-9'>
+    <section className='flex h-full flex-col'>
       <HomeTabs />
 
-      {threads.length === 0 ? (
-        <p className='py-10 text-center text-base-regular text-bg-secondary-1'>
-          {tab === 'following'
-            ? 'Join communities to see their threads here.'
-            : 'No threads yet.'}
-        </p>
-      ) : (
-        <>
-          {threads.map((thread) => (
-            <ThreadCard
-              key={thread._id}
-              id={thread._id}
-              currentUserId={user.authId}
-              parentId={thread.parentId}
-              content={thread.text}
-              author={thread.author}
-              community={thread.community ?? undefined}
-              createdAt={thread.createdAt}
-              comments={thread.children}
-              likes={thread.likes?.map((l) => l.authId)}
-            />
-          ))}
+      <div className='custom-scrollbar flex flex-1 flex-col gap-9 overflow-y-auto pt-6'>
+        {threads.length === 0 ? (
+          <p className='py-10 text-center text-base-regular text-bg-secondary-1'>
+            {tab === 'following'
+              ? 'Join communities to see their threads here.'
+              : 'No threads yet.'}
+          </p>
+        ) : (
+          <>
+            {threads.map((thread) => (
+              <ThreadCard
+                key={thread._id}
+                id={thread._id}
+                currentUserId={user.authId}
+                parentId={thread.parentId}
+                content={thread.text}
+                author={thread.author}
+                community={thread.community ?? undefined}
+                createdAt={thread.createdAt}
+                comments={thread.children}
+                likes={thread.likes?.map((l) => l.authId)}
+              />
+            ))}
 
-          {totalPages > 1 && (
-            <Pagination totalPages={totalPages} activePage={page} path={Pages.HOME} />
-          )}
-        </>
-      )}
+            {totalPages > 1 && (
+              <Pagination totalPages={totalPages} activePage={page} path={Pages.HOME} />
+            )}
+          </>
+        )}
+      </div>
     </section>
   )
 }
