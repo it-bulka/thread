@@ -1,13 +1,19 @@
 import { currentUser } from '@clerk/nextjs'
-import { fetchSuggestedCommunities } from '@/services'
+import { fetchSuggestedCommunities, fetchSuggestedUsers } from '@/services'
 import { CommunityCard } from '@/components/cards/CommunityCard'
-import { ISuggestedCommunity } from '@/types'
+import { UserCard } from '@/components/cards/UserCard'
+import { ISuggestedCommunity, ISuggestedUser } from '@/types'
 
 export const RightSidebar = async () => {
   const user = await currentUser()
 
-  const result = user ? await fetchSuggestedCommunities(user.id) : null
-  const suggested: ISuggestedCommunity[] = result?.ok ? result.data : []
+  const [commResult, usersResult] = await Promise.all([
+    user ? fetchSuggestedCommunities(user.id) : null,
+    user ? fetchSuggestedUsers(user.id) : null,
+  ])
+
+  const suggested: ISuggestedCommunity[] = commResult?.ok ? commResult.data : []
+  const suggestedUsers: ISuggestedUser[] = usersResult?.ok ? usersResult.data : []
 
   return (
     <section className='custom-scrollbar rightsidebar'>
@@ -40,7 +46,20 @@ export const RightSidebar = async () => {
       <div className='flex flex-1 flex-col justify-start'>
         <h3 className='text-heading4-medium text-bg-reverse-1'>Suggested Users</h3>
         <div className='mt-7 flex w-[350px] flex-col gap-10'>
-          {/* TODO: add suggested Users */}
+          {suggestedUsers.length === 0 ? (
+            <p className='text-small-regular text-bg-secondary-1'>No suggestions yet.</p>
+          ) : (
+            suggestedUsers.map((u) => (
+              <UserCard
+                key={u.authId}
+                id={u.authId}
+                name={u.name}
+                username={u.username}
+                imgUrl={u.image}
+                personType='user'
+              />
+            ))
+          )}
         </div>
       </div>
     </section>

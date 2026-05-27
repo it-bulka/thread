@@ -1,7 +1,7 @@
 'use server'
 import { connectToDb } from '@/db/connectToDb';
 import { User } from '@/models';
-import { IActivityItem, ILikedThread, IUserRes } from '@/types';
+import { IActivityItem, ILikedThread, ISuggestedUser, IUserRes } from '@/types';
 import { FilterQuery, SortOrder } from 'mongoose';
 import { handleError } from '@/lib/handleError';
 import Thread from '@/models/thread';
@@ -136,6 +136,23 @@ export const getActivities = handleError(async (
   return { activities, totalPages, page: pageNumber }
 },
   () => 'Failed to fetch activities')
+
+
+export const fetchSuggestedUsers = handleError(async (userAuthId: string): Promise<ISuggestedUser[]> => {
+  await connectToDb()
+
+  const count = await User.countDocuments({ authId: { $ne: userAuthId } })
+  const randomSkip = Math.max(0, Math.floor(Math.random() * count) - 5)
+
+  const users = await User
+    .find({ authId: { $ne: userAuthId } })
+    .select('authId name username image')
+    .skip(randomSkip)
+    .limit(5)
+    .lean()
+
+  return toPlain<ISuggestedUser[]>(users)
+}, () => 'Failed to fetch suggested users')
 
 
 export const getLikedThreads = handleError(async (

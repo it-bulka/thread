@@ -130,3 +130,10 @@ export interface ISuggestedCommunity {
   members: { image: string }[]
 }
 
+export interface ISuggestedUser {
+  authId: string
+  name: string
+  username: string
+  image: string
+}
+
