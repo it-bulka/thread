@@ -6,6 +6,7 @@ import { FilterQuery, SortOrder } from 'mongoose';
 import { handleError } from '@/lib/handleError';
 import Thread from '@/models/thread';
 import { Models } from '@/consts';
+import { toPlain } from '@/lib/utils';
 
 interface IUserUpdate {
   authId: string;
@@ -28,8 +29,7 @@ export const updateUser = handleError(async (userData: IUserUpdate): Promise<IUs
     { upsert: true, new: true }
   )
 
-  const plainUser: IUserRes = user.toObject()
-  return plainUser
+  return toPlain<IUserRes>(user)
 },
   () => 'Failed to create/update user')
 
@@ -48,7 +48,7 @@ export const deleteUser = handleError(async ({ userId }: IUserDelete): Promise<v
 export const fetchUser = handleError(async (userId: string): Promise<IUserRes | null>  => {
   await connectToDb()
   const userDoc = await User.findOne({ authId: userId }) ?? await User.findOne({ username: userId })
-  return userDoc?.toObject() ?? null
+  return userDoc ? toPlain<IUserRes>(userDoc) : null
 },
   () => 'Failed to fetch user')
 
@@ -162,6 +162,6 @@ export const getLikedThreads = handleError(async (
 
   const totalPages = Math.ceil(total / pageSize) || 1
 
-  return { threads: threads as unknown as ILikedThread[], totalPages, page: pageNumber }
+  return { threads: toPlain<ILikedThread[]>(threads), totalPages, page: pageNumber }
 },
   () => 'Failed to fetch liked threads')

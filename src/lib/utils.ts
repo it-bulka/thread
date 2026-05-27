@@ -11,6 +11,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Converts a Mongoose document (or any object with ObjectId fields) to a
+// fully plain object safe to pass from Server Components to Client Components.
+// JSON.stringify calls .toJSON() on ObjectId → string; JSON.parse gives a plain object.
+export const toPlain = <T>(doc: unknown): T => JSON.parse(JSON.stringify(doc))
+
 export const checkExistedUser = async (redirectToOnboard: boolean = true): Promise<Pick<IUserRes, 'username' | 'name' | 'bio' | 'image' | 'authId' | 'threads'> | null> => {
   const user = await currentUser();
   if (!user) redirect(Pages.SIGN_IN)
