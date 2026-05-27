@@ -8,6 +8,7 @@ export interface IThread {
   parentId?: Types.ObjectId
   children: Types.ObjectId[]
   likes: Types.ObjectId[]
+  taggedUsers: Types.ObjectId[]
   createdAt: Date
   updatedAt: Date
 }
@@ -38,10 +39,15 @@ export const ThreadSchema = new mongoose.Schema<IThread>({
     type: mongoose.Schema.Types.ObjectId,
     ref: Models.USER,
   }],
+  taggedUsers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Models.USER,
+  }],
 }, { timestamps: true })
 
 ThreadSchema.index({ author: 1 })
 ThreadSchema.index({ likes: 1 })
+ThreadSchema.index({ taggedUsers: 1 })
 
 ThreadSchema.pre<IThread>('deleteOne', async function () {
   const childrenId = this.children

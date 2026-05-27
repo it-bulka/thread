@@ -20,6 +20,7 @@ export interface IThreadRes {
   parentId?: string
   children?: string[]
   likes?: string[]
+  taggedUsers?: string[]
   createdAt: string
   updatedAt: string
 }
@@ -86,6 +87,10 @@ export interface IUserWithThreadsRes extends Omit<IUserRes, 'threads' | 'communi
 
 export interface IUserRepliesRes {
   replies: IPopulatedThread[]
+}
+
+export interface ITaggedThreadsRes {
+  threads: IPopulatedThread[]
 }
 
 interface IPopulatedThreadForCommunity extends Omit<IThreadRes, 'author' | 'community' | 'children' | 'likes'>  {
