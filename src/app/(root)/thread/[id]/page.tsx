@@ -1,6 +1,7 @@
 import { ThreadCard } from '@/components/cards/ThreadCard';
 import { checkExistedUser } from '@/lib/utils';
 import { getThreadById } from '@/services/thread';
+import { fetchCommunityDetails } from '@/services';
 import { CommentForm } from '@/components/forms/CommentForm';
 import { ErrorMessage } from '@/components/shared/ErrorMessage';
 
@@ -13,6 +14,24 @@ export default async function Thread ( { params } : {params:  { id: string } }) 
 
   if(!user || !thread) {
     return <>Thread not found</>
+  }
+
+  let communityAuthId: string | undefined
+  let communityName: string | undefined
+  let isPrivateCommunity = false
+  let isMember = false
+  let hasPendingRequest = false
+
+  if (thread.community?.isPrivate) {
+    communityAuthId = thread.community.authOrganizationId
+    communityName = thread.community.name
+    isPrivateCommunity = true
+
+    const communityResult = await fetchCommunityDetails({ authOrganizationId: communityAuthId })
+    if (communityResult.ok) {
+      isMember = communityResult.data.members.some(m => m.authId === user.authId)
+      hasPendingRequest = communityResult.data.joinRequests.some(r => r.authId === user.authId)
+    }
   }
 
   return (
@@ -34,6 +53,11 @@ export default async function Thread ( { params } : {params:  { id: string } }) 
           threadId={params.id}
           currentUserImg={user.image}
           currentUserId={user.authId}
+          communityAuthId={communityAuthId}
+          communityName={communityName}
+          isPrivateCommunity={isPrivateCommunity}
+          isMember={isMember}
+          hasPendingRequest={hasPendingRequest}
         />
       </div>
 

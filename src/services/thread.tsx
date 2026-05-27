@@ -1,5 +1,6 @@
 'use server'
 import { Types } from 'mongoose';
+import { toPlain } from '@/lib/utils';
 import { ICommunityThreadsRes, ITaggedThreadsRes, IThreadRes, IThreadWithChildren, IUserRepliesRes, IUserWithThreadsRes } from '@/types';
 import Thread, {IThread } from '@/models/thread';
 import Community from '@/models/community';
@@ -30,6 +31,11 @@ export const createThread = handleError(async (param: ICreateThread): Promise<IT
   if(param.communityId) {
     community = await Community.findOne({ authOrganizationId: param.communityId })
     if(!community) throw 'Community not found'
+
+    if (community.isPrivate) {
+      const isMember = community.members.some((m: Types.ObjectId) => m.equals(user._id))
+      if (!isMember) throw new Error('PRIVATE_COMMUNITY')
+    }
 
     threadData.community = community._id
   }
@@ -109,7 +115,7 @@ export const getThreadById = handleError(async (id: string): Promise<IThreadWith
     .populate({
       path: 'community',
       model: Models.COMMUNITY,
-      select: '_id authOrganizationId name image'
+      select: '_id authOrganizationId name image isPrivate'
     })
     .populate({
       path: 'likes',
@@ -141,7 +147,7 @@ export const getThreadById = handleError(async (id: string): Promise<IThreadWith
       ],
     }).exec()
 
-  return thread?.toObject()
+  return thread ? toPlain(thread) : undefined
 },
   () => 'Failed to get thread')
 
@@ -160,6 +166,14 @@ export const addCommentToThread = handleError(async (params: IThreadComment): Pr
 
   const author = await User.findOne({ authId: params.userId })
   if(!author) throw 'No user to comment'
+
+  if (commentedThread.community) {
+    const community = await Community.findById(commentedThread.community).select('isPrivate members')
+    if (community?.isPrivate) {
+      const isMember = community.members.some((m: Types.ObjectId) => m.equals(author._id))
+      if (!isMember) throw new Error('PRIVATE_COMMUNITY')
+    }
+  }
 
   const mentionedUsernames = parseMentions(params.comment)
   const taggedUsers = mentionedUsernames.length > 0
@@ -238,7 +252,7 @@ export const fetchUserThreads = handleError(async ({ userId }: IFetchUserThreads
       }]
   })
 
-  const user: IUserWithThreadsRes | undefined = userWithThreads?.toObject()
+  const user: IUserWithThreadsRes | undefined = userWithThreads ? toPlain(userWithThreads) : undefined
 
   return user
 },
@@ -270,7 +284,7 @@ export const fetchUserReplies = handleError(
       .sort({ createdAt: 'desc' })
       .exec()
 
-    return { replies: replyDocs.map(r => r.toObject()) }
+    return toPlain({ replies: replyDocs })
   },
   () => 'Failed to fetch user replies'
 )
@@ -300,7 +314,7 @@ export const fetchTaggedThreads = handleError(
       .sort({ createdAt: 'desc' })
       .exec()
 
-    return { threads: threadDocs.map(t => t.toObject()) }
+    return toPlain({ threads: threadDocs })
   },
   () => 'Failed to fetch tagged threads'
 )
@@ -337,7 +351,7 @@ export const fetchCommunityThreads = handleError(async ({ authOrganizationId }: 
       ],
     })
 
-    const community: ICommunityThreadsRes | undefined = communityWithThreads?.toObject()
+    const community: ICommunityThreadsRes | undefined = communityWithThreads ? toPlain(communityWithThreads) : undefined
 
     return community
   },
