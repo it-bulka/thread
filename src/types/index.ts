@@ -31,6 +31,15 @@ export interface IActivityItem {
   createdAt: string
 }
 
+export interface ILikedThread extends Omit<IPopulatedThread, 'community'> {
+  community: {
+    _id: string
+    authOrganizationId: string
+    name: string
+    image: string
+  } | null
+}
+
 export interface ICommunityRes {
   _id: string
   authOrganizationId: string

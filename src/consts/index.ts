@@ -62,3 +62,8 @@ export const communityTabs = [
   { value: "members", label: "Members", icon: "/assets/members.svg" },
   { value: "requests", label: "Requests", icon: "/assets/request.svg" },
 ];
+
+export const activityTabs = [
+  { value: "liked-me", label: "Liked me", icon: "/assets/heart.svg" },
+  { value: "my-likes", label: "My likes", icon: "/assets/heart-filled.svg" },
+];
