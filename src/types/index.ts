@@ -121,3 +121,12 @@ export interface ICommunityDetailsRes extends Omit<ICommunityRes, 'createdBy' | 
   joinRequests: Pick<IUserRes, '_id' | 'authId' | 'name' | 'username' | 'image'>[]
 }
 
+export interface ISuggestedCommunity {
+  authOrganizationId: string
+  name: string
+  username: string
+  image: string
+  bio: string
+  members: { image: string }[]
+}
+

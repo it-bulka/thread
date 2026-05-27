@@ -1,5 +1,5 @@
 'use server'
-import { ICommunityDetailsRes, ICommunityRes } from '@/types';
+import { ICommunityDetailsRes, ICommunityRes, ISuggestedCommunity } from '@/types';
 import { toPlain } from '@/lib/utils';
 import { connectToDb } from '@/db/connectToDb';
 import mongoose, { FilterQuery, SortOrder } from 'mongoose';
@@ -137,3 +137,23 @@ export const deleteCommunity = handleError(async (communityId: string): Promise<
     throw error
   }
 })
+
+
+export const fetchSuggestedCommunities = handleError(async (userAuthId: string): Promise<ISuggestedCommunity[]> => {
+  await connectToDb()
+
+  const user = await User.findOne({ authId: userAuthId }).select('_id')
+  if (!user) return []
+
+  const communities = await Community.find({
+    members: { $nin: [user._id] },
+    createdBy: { $ne: user._id },
+  })
+    .limit(5)
+    .populate({ path: 'members', model: Models.USER, select: 'image' })
+    .lean()
+
+  return toPlain<ISuggestedCommunity[]>(communities)
+},
+  () => 'Failed to fetch suggested communities'
+)
