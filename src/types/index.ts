@@ -84,6 +84,10 @@ export interface IUserWithThreadsRes extends Omit<IUserRes, 'threads' | 'communi
   community: Pick<ICommunityRes, 'name' | 'authOrganizationId' | 'image' | '_id'>[]
 }
 
+export interface IUserRepliesRes {
+  replies: IPopulatedThread[]
+}
+
 interface IPopulatedThreadForCommunity extends Omit<IThreadRes, 'author' | 'community' | 'children' | 'likes'>  {
   author: Omit<Author, '_id'>
   likes?: Pick<IUserRes, 'authId'>[]

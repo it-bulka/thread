@@ -1,6 +1,6 @@
 'use server'
 import { Types } from 'mongoose';
-import { ICommunityThreadsRes, IThreadRes, IThreadWithChildren, IUserWithThreadsRes } from '@/types';
+import { ICommunityThreadsRes, IThreadRes, IThreadWithChildren, IUserRepliesRes, IUserWithThreadsRes } from '@/types';
 import Thread, {IThread } from '@/models/thread';
 import Community from '@/models/community';
 import { connectToDb } from '@/db/connectToDb';
@@ -226,6 +226,37 @@ export const fetchUserThreads = handleError(async ({ userId }: IFetchUserThreads
   return user
 },
   () => 'Failed fetch user`s threads')
+
+
+interface IFetchUserReplies {
+  userId: string
+}
+export const fetchUserReplies = handleError(
+  async ({ userId }: IFetchUserReplies): Promise<IUserRepliesRes> => {
+    await connectToDb()
+
+    const user = await User.findOne({ authId: userId }).select('_id')
+    if (!user) throw 'User not found'
+
+    const replyDocs = await Thread.find({
+      author: user._id,
+      parentId: { $ne: null },
+    })
+      .populate({ path: 'author', model: Models.USER, select: '_id authId name image' })
+      .populate({ path: 'community', model: Models.COMMUNITY, select: '_id authOrganizationId name image' })
+      .populate({
+        path: 'children',
+        model: Models.THREAD,
+        populate: { path: 'author', model: Models.USER, select: '_id authId name image' },
+      })
+      .populate({ path: 'likes', model: Models.USER, select: 'authId' })
+      .sort({ createdAt: 'desc' })
+      .exec()
+
+    return { replies: replyDocs.map(r => r.toObject()) }
+  },
+  () => 'Failed to fetch user replies'
+)
 
 
 interface IFetchCommunityThreads {
