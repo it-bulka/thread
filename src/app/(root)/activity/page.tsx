@@ -1,27 +1,28 @@
 import { checkExistedUser } from '@/lib/utils'
 import { getActivities } from '@/services/user'
 import { ErrorMessage } from '@/components/shared/ErrorMessage'
+import { Pagination } from '@/components/shared/Pagination'
 import { Pages } from '@/consts'
 import Image from 'next/image'
 import Link from 'next/link'
 
-export default async function Activity() {
+export default async function Activity({ searchParams }: { searchParams: { page?: string } }) {
   const user = await checkExistedUser()
   if (!user) return null
 
-  const result = await getActivities(user.authId)
+  const pageNumber = Number(searchParams?.page) || 1
+
+  const result = await getActivities(user.authId, pageNumber)
   if (!result.ok) return <ErrorMessage message={result.error} />
 
-  const activities = result.data
+  const { activities, totalPages, page } = result.data
 
   if (!activities.length) {
-    return (
-      <p className='mt-10 text-center text-base-regular text-bg-secondary-1'>No activity yet</p>
-    )
+    return <p className='text-center text-base-regular text-bg-secondary-1'>No activity yet</p>
   }
 
   return (
-    <section className='mt-9 flex flex-col gap-5'>
+    <div className='flex flex-col gap-5'>
       {activities.map((item, i) => (
         <Link
           key={i}
@@ -43,6 +44,10 @@ export default async function Activity() {
           </p>
         </Link>
       ))}
-    </section>
+
+      {totalPages > 1 && (
+        <Pagination totalPages={totalPages} activePage={page} path={Pages.ACTIVITY} />
+      )}
+    </div>
   )
 }
