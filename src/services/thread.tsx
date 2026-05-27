@@ -1,7 +1,7 @@
 'use server'
 import { Types } from 'mongoose';
 import { toPlain } from '@/lib/utils';
-import { ICommunityThreadsRes, ITaggedThreadsRes, IThreadRes, IThreadWithChildren, IUserRepliesRes, IUserWithThreadsRes } from '@/types';
+import { ICommunityThreadsRes, IFeedResult, ITaggedThreadsRes, IThreadRes, IThreadWithChildren, IUserRepliesRes, IUserWithThreadsRes } from '@/types';
 import Thread, {IThread } from '@/models/thread';
 import Community from '@/models/community';
 import { connectToDb } from '@/db/connectToDb';
@@ -10,6 +10,13 @@ import { Models } from '@/consts';
 import { User } from '@/models';
 import { handleError } from '@/lib/handleError';
 import { parseMentions } from '@/lib/parseMentions';
+
+const FEED_POPULATE = [
+  { path: 'author',    model: Models.USER,      select: '_id authId name image' },
+  { path: 'community', model: Models.COMMUNITY, select: '_id authOrganizationId name image isPrivate' },
+  { path: 'children',  model: Models.THREAD,    populate: { path: 'author', model: Models.USER, select: '_id authId name image' } },
+  { path: 'likes',     model: Models.USER,      select: 'authId' },
+]
 
 interface ICreateThread {
   text: string
@@ -356,3 +363,36 @@ export const fetchCommunityThreads = handleError(async ({ authOrganizationId }: 
     return community
   },
   () => 'Failed fetch community`s threads')
+
+
+interface IFetchFeedThreads {
+  page: number
+  pageSize: number
+  userAuthId?: string
+}
+
+export const fetchFeedThreads = handleError(async ({ page, pageSize, userAuthId }: IFetchFeedThreads): Promise<IFeedResult> => {
+  await connectToDb()
+
+  const filter: Record<string, unknown> = { parentId: { $exists: false } }
+
+  if (userAuthId) {
+    const user = await User.findOne({ authId: userAuthId }).select('communities')
+    if (!user) throw 'User not found'
+    if (!user.communities.length) return { threads: [], totalPages: 0 }
+    filter.community = { $in: user.communities }
+  }
+
+  const skip = (page - 1) * pageSize
+  const [threadDocs, total] = await Promise.all([
+    Thread.find(filter)
+      .populate(FEED_POPULATE)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize)
+      .exec(),
+    Thread.countDocuments(filter),
+  ])
+
+  return toPlain<IFeedResult>({ threads: threadDocs, totalPages: Math.ceil(total / pageSize) })
+}, () => 'Failed to fetch feed')

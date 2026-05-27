@@ -137,3 +137,8 @@ export interface ISuggestedUser {
   image: string
 }
 
+export interface IFeedResult {
+  threads: (IPopulatedThread & { community: Community | null })[]
+  totalPages: number
+}
+
