@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { sidebarLinks } from '@/consts';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils'
+import { LogoutButton } from '@/components/shared/LogoutButton'
 
 export const LeftSidebar = () => {
   const pathName = usePathname()
@@ -39,6 +40,10 @@ export const LeftSidebar = () => {
             </Link>
           )
         })}
+      </div>
+
+      <div className='mt-auto px-6 py-6'>
+        <LogoutButton className='leftsidebar_link w-full' showLabel />
       </div>
     </section>
   )
