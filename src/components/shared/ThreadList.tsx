@@ -16,7 +16,7 @@ export type ThreadListItem = {
 
 interface IThreadListProps {
   threads: ThreadListItem[]
-  currentUserId: string
+  currentUserId: string | null
 }
 
 export const ThreadList = ({ threads, currentUserId }: IThreadListProps) => {
@@ -31,6 +31,7 @@ export const ThreadList = ({ threads, currentUserId }: IThreadListProps) => {
         <ThreadCard
           key={thread.id}
           {...thread}
+          community={thread.community ?? undefined}
           currentUserId={currentUserId}
           onDelete={removeThread}
         />

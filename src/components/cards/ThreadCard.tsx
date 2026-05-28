@@ -11,7 +11,7 @@ import { ShareThreadButton } from '@/components/cards/ShareThreadButton';
 
 interface IThreadCardProps {
   id: string
-  currentUserId: string
+  currentUserId: string | null
   parentId?: string
   content: string
   author: {

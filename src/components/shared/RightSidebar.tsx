@@ -1,15 +1,15 @@
-import { currentUser } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs'
 import { fetchSuggestedCommunities, fetchSuggestedUsers } from '@/services'
 import { CommunityCard } from '@/components/cards/CommunityCard'
 import { UserCard } from '@/components/cards/UserCard'
 import { ISuggestedCommunity, ISuggestedUser } from '@/types'
 
 export const RightSidebar = async () => {
-  const user = await currentUser()
+  const { userId } = auth()
 
   const [commResult, usersResult] = await Promise.all([
-    user ? fetchSuggestedCommunities(user.id) : null,
-    user ? fetchSuggestedUsers(user.id) : null,
+    userId ? fetchSuggestedCommunities(userId) : null,
+    userId ? fetchSuggestedUsers(userId) : null,
   ])
 
   const suggested: ISuggestedCommunity[] = commResult?.ok ? commResult.data : []

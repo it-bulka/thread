@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 
 interface ILikeButtonProps {
   threadId: string
-  currentUserId: string
+  currentUserId: string | null
   initialLikes: string[]
   path: string
 }
@@ -14,9 +14,13 @@ interface ILikeButtonProps {
 export const LikeButton = ({ threadId, currentUserId, initialLikes, path }: ILikeButtonProps) => {
   const [likes, setLikes] = useState(initialLikes)
   const [isPending, startTransition] = useTransition()
-  const isLiked = likes.includes(currentUserId)
+  const isLiked = !!currentUserId && likes.includes(currentUserId)
 
   const handleLike = () => {
+    if (!currentUserId) {
+      toast.error('Sign in to like threads')
+      return
+    }
     setLikes(prev =>
       isLiked ? prev.filter(id => id !== currentUserId) : [...prev, currentUserId]
     )
