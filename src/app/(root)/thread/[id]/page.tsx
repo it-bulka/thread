@@ -1,4 +1,5 @@
 import { ThreadCard } from '@/components/cards/ThreadCard';
+import { ThreadList } from '@/components/shared/ThreadList';
 import { checkExistedUser } from '@/lib/utils';
 import { getThreadById } from '@/services/thread';
 import { fetchCommunityDetails } from '@/services';
@@ -62,21 +63,20 @@ export default async function Thread ( { params } : {params:  { id: string } }) 
       </div>
 
       <div className='mt-10'>
-        {thread.children.map((childItem: any) => (
-          <ThreadCard
-            key={childItem._id}
-            id={childItem._id}
-            currentUserId={user.authId}
-            parentId={childItem.parentId}
-            content={childItem.text}
-            author={childItem.author}
-            community={childItem.community}
-            createdAt={childItem.createdAt}
-            comments={childItem.children}
-            likes={childItem.likes?.map((l: any) => l.authId) ?? []}
-            isComment
-          />
-        ))}
+        <ThreadList
+          currentUserId={user.authId}
+          threads={thread.children.map((childItem: any) => ({
+            id: childItem._id,
+            parentId: childItem.parentId,
+            content: childItem.text,
+            author: childItem.author,
+            community: childItem.community,
+            createdAt: childItem.createdAt,
+            comments: childItem.children ?? [],
+            likes: childItem.likes?.map((l: any) => l.authId) ?? [],
+            isComment: true,
+          }))}
+        />
       </div>
     </section>
   )

@@ -1,6 +1,6 @@
 'use client'
 import { useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { deleteThread } from '@/services/thread'
@@ -17,21 +17,25 @@ import {
 
 interface IDeleteThreadButtonProps {
   threadId: string
-  redirectTo: string
+  onDelete?: (id: string) => void
 }
 
-export const DeleteThreadButton = ({ threadId, redirectTo }: IDeleteThreadButtonProps) => {
+export const DeleteThreadButton = ({ threadId, onDelete }: IDeleteThreadButtonProps) => {
   const router = useRouter()
+  const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
 
   const handleDelete = () => {
     startTransition(async () => {
-      const result = await deleteThread({ id: threadId, path: redirectTo })
+      onDelete?.(threadId)
+      const result = await deleteThread({ id: threadId, path: pathname })
       if (!result.ok) {
         toast.error(result.error)
         return
       }
-      router.push(redirectTo)
+      if (!onDelete) {
+        router.push('/')
+      }
     })
   }
 

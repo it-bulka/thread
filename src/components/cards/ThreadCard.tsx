@@ -32,9 +32,10 @@ interface IThreadCardProps {
   }[]
   isComment?: boolean
   likes?: string[]
+  onDelete?: (id: string) => void
 }
 export const ThreadCard = ({
-  id, currentUserId, parentId, content, author, community, createdAt, comments, isComment, likes
+  id, currentUserId, parentId, content, author, community, createdAt, comments, isComment, likes, onDelete
 }: IThreadCardProps) => {
 
   return (
@@ -123,7 +124,7 @@ export const ThreadCard = ({
         </div>
 
         {currentUserId === author.authId && (
-          <DeleteThreadButton threadId={id} redirectTo='/' />
+          <DeleteThreadButton threadId={id} onDelete={onDelete} />
         )}
       </div>
 

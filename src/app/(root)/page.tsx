@@ -1,6 +1,6 @@
-import { ThreadCard } from '@/components/cards/ThreadCard';
 import { Pagination } from '@/components/shared/Pagination';
 import { HomeTabs } from '@/components/shared/HomeTabs';
+import { ThreadList } from '@/components/shared/ThreadList';
 import { fetchFeedThreads } from '@/services/thread';
 import { checkExistedUser } from '@/lib/utils';
 import { Pages } from '@/consts';
@@ -42,20 +42,19 @@ export default async function Home({ searchParams }: HomeProps) {
           </p>
         ) : (
           <>
-            {threads.map((thread) => (
-              <ThreadCard
-                key={thread._id}
-                id={thread._id}
-                currentUserId={user.authId}
-                parentId={thread.parentId}
-                content={thread.text}
-                author={thread.author}
-                community={thread.community ?? undefined}
-                createdAt={thread.createdAt}
-                comments={thread.children}
-                likes={thread.likes?.map((l) => l.authId)}
-              />
-            ))}
+            <ThreadList
+              currentUserId={user.authId}
+              threads={threads.map(thread => ({
+                id: thread._id,
+                parentId: thread.parentId,
+                content: thread.text,
+                author: thread.author,
+                community: thread.community,
+                createdAt: thread.createdAt,
+                comments: thread.children,
+                likes: thread.likes?.map(l => l.authId),
+              }))}
+            />
 
             {totalPages > 1 && (
               <Pagination totalPages={totalPages} activePage={page} path={Pages.HOME} />

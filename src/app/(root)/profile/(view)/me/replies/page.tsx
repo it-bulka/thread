@@ -1,7 +1,7 @@
 import { checkExistedUser } from '@/lib/utils'
 import { fetchUserReplies } from '@/services'
 import { ErrorMessage } from '@/components/shared/ErrorMessage'
-import { ThreadCard } from '@/components/cards/ThreadCard'
+import { ThreadList } from '@/components/shared/ThreadList'
 
 export default async function ProfileMeReplies() {
   const user = await checkExistedUser()
@@ -18,26 +18,20 @@ export default async function ProfileMeReplies() {
 
   return (
     <section className='flex flex-col gap-10'>
-      {replies.map((thread) => (
-        <ThreadCard
-          key={thread._id}
-          id={thread._id}
-          currentUserId={user.authId}
-          parentId={thread.parentId}
-          content={thread.text}
-          isComment={true}
-          author={{
-            name: thread.author.name,
-            image: thread.author.image,
-            authId: thread.author.authId,
-            username: thread.author.username,
-          }}
-          community={thread.community}
-          createdAt={thread.createdAt}
-          comments={thread.children}
-          likes={thread.likes?.map(l => l.authId) ?? []}
-        />
-      ))}
+      <ThreadList
+        currentUserId={user.authId}
+        threads={replies.map(thread => ({
+          id: thread._id,
+          parentId: thread.parentId,
+          content: thread.text,
+          isComment: true,
+          author: { name: thread.author.name, image: thread.author.image, authId: thread.author.authId, username: thread.author.username },
+          community: thread.community,
+          createdAt: thread.createdAt,
+          comments: thread.children,
+          likes: thread.likes?.map(l => l.authId) ?? [],
+        }))}
+      />
     </section>
   )
 }
