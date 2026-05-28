@@ -29,13 +29,14 @@ export const ThreadCardActions = ({ id, currentUserId, likes, comments, isCommen
           className='cursor-pointer object-contain'
         />
       </Link>
-      <Image
+      {/* TODO: implement repost functionality */}
+      {/* <Image
         src='/assets/repost.svg'
         alt='repost'
         width={24}
         height={24}
         className='cursor-pointer object-contain'
-      />
+      /> */}
       <ShareThreadButton threadId={id} />
     </div>
 
