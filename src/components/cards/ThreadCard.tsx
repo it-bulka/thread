@@ -7,6 +7,7 @@ import { formatDateString, cn } from '@/lib/utils';
 import { LikeButton } from '@/components/cards/LikeButton';
 import { MentionText } from '@/components/ui/MentionText'
 import { DeleteThreadButton } from '@/components/cards/DeleteThreadButton';
+import { ShareThreadButton } from '@/components/cards/ShareThreadButton';
 
 interface IThreadCardProps {
   id: string
@@ -103,13 +104,7 @@ export const ThreadCard = ({
                   height={24}
                   className='cursor-pointer object-contain'
                 />
-                <Image
-                  src='/assets/share.svg'
-                  alt='heart'
-                  width={24}
-                  height={24}
-                  className='cursor-pointer object-contain'
-                />
+                <ShareThreadButton threadId={id} />
               </div>
 
               {isComment && comments.length > 0 && (
