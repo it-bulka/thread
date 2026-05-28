@@ -69,32 +69,43 @@ export const ThreadForm = ({ authorId }: { authorId: string }) => {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <FormField
-            control={form.control}
-            name='thread'
-            render={({ field }) => (
-              <FormItem className='flex w-full flex-col gap-3'>
-                <FormLabel className='text-base-semibold text-bg-reverse-2'>
-                  Content
-                </FormLabel>
-                <FormControl className='no-focus border border-dark-4 bg-bg-3 text-bg-reverse-1'>
-                  <Textarea rows={15} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {isBlocked && (
-            <p className='mt-2 flex items-center gap-1.5 text-small-regular text-gray-1'>
-              <span>🔒</span>
-              This is a private community — you need to join before posting.
-            </p>
+          {isBlocked ? (
+            <div className='flex flex-col items-center gap-4 py-10 text-center'>
+              <span className='text-4xl'>🔒</span>
+              <p className='text-base-semibold text-bg-reverse-2'>Private community</p>
+              <p className='text-small-regular text-gray-1'>
+                You need to join before posting.
+              </p>
+              <Button
+                type='submit'
+                className='bg-primary-500'
+                disabled={accessStatus?.hasPendingRequest}
+              >
+                {accessStatus?.hasPendingRequest ? 'Request Pending…' : 'Request to Join'}
+              </Button>
+            </div>
+          ) : (
+            <>
+              <FormField
+                control={form.control}
+                name='thread'
+                render={({ field }) => (
+                  <FormItem className='flex w-full flex-col gap-3'>
+                    <FormLabel className='text-base-semibold text-bg-reverse-2'>
+                      Content
+                    </FormLabel>
+                    <FormControl className='no-focus border border-dark-4 bg-bg-3 text-bg-reverse-1'>
+                      <Textarea rows={15} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type='submit' className='bg-primary-500 ml-auto mr-0 flex max-w-max mt-3'>
+                Post Thread
+              </Button>
+            </>
           )}
-
-          <Button type='submit' className='bg-primary-500 ml-auto mr-0 flex max-w-max mt-3'>
-            {isBlocked ? 'Request to Join' : 'Post Thread'}
-          </Button>
         </form>
       </Form>
 
