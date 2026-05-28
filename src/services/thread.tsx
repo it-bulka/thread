@@ -12,9 +12,9 @@ import { handleError } from '@/lib/handleError';
 import { parseMentions } from '@/lib/parseMentions';
 
 const FEED_POPULATE = [
-  { path: 'author',    model: Models.USER,      select: '_id authId name image' },
+  { path: 'author',    model: Models.USER,      select: '_id authId name image username' },
   { path: 'community', model: Models.COMMUNITY, select: '_id authOrganizationId name image isPrivate' },
-  { path: 'children',  model: Models.THREAD,    populate: { path: 'author', model: Models.USER, select: '_id authId name image' } },
+  { path: 'children',  model: Models.THREAD,    populate: { path: 'author', model: Models.USER, select: '_id authId name image username' } },
   { path: 'likes',     model: Models.USER,      select: 'authId' },
 ]
 
@@ -117,7 +117,7 @@ export const getThreadById = handleError(async (id: string): Promise<IThreadWith
     .populate({
       path: 'author',
       model: Models.USER,
-      select: '_id authId name image'
+      select: '_id authId name image username'
     })
     .populate({
       path: 'community',
@@ -135,7 +135,7 @@ export const getThreadById = handleError(async (id: string): Promise<IThreadWith
         {
           path: "author",
           model: Models.USER,
-          select: "_id authId name parentId image",
+          select: "_id authId name parentId image username",
         },
         {
           path: "children",
@@ -143,7 +143,7 @@ export const getThreadById = handleError(async (id: string): Promise<IThreadWith
           populate: {
             path: "author",
             model: Models.USER,
-            select: "_id authId name parentId image",
+            select: "_id authId name parentId image username",
           },
         },
         {
@@ -249,7 +249,7 @@ export const fetchUserThreads = handleError(async ({ userId }: IFetchUserThreads
         populate: {
           path: 'author',
           model: Models.USER,
-          select: 'name image authId _id'
+          select: 'name image authId _id username'
         }
       },
       {
@@ -280,12 +280,12 @@ export const fetchUserReplies = handleError(
       author: user._id,
       parentId: { $ne: null },
     })
-      .populate({ path: 'author', model: Models.USER, select: '_id authId name image' })
+      .populate({ path: 'author', model: Models.USER, select: '_id authId name image username' })
       .populate({ path: 'community', model: Models.COMMUNITY, select: '_id authOrganizationId name image' })
       .populate({
         path: 'children',
         model: Models.THREAD,
-        populate: { path: 'author', model: Models.USER, select: '_id authId name image' },
+        populate: { path: 'author', model: Models.USER, select: '_id authId name image username' },
       })
       .populate({ path: 'likes', model: Models.USER, select: 'authId' })
       .sort({ createdAt: 'desc' })
@@ -310,12 +310,12 @@ export const fetchTaggedThreads = handleError(
     const threadDocs = await Thread.find({
       taggedUsers: user._id,
     })
-      .populate({ path: 'author', model: Models.USER, select: '_id authId name image' })
+      .populate({ path: 'author', model: Models.USER, select: '_id authId name image username' })
       .populate({ path: 'community', model: Models.COMMUNITY, select: '_id authOrganizationId name image' })
       .populate({
         path: 'children',
         model: Models.THREAD,
-        populate: { path: 'author', model: Models.USER, select: '_id authId name image' },
+        populate: { path: 'author', model: Models.USER, select: '_id authId name image username' },
       })
       .populate({ path: 'likes', model: Models.USER, select: 'authId' })
       .sort({ createdAt: 'desc' })
@@ -339,7 +339,7 @@ export const fetchCommunityThreads = handleError(async ({ authOrganizationId }: 
         {
           path: 'author',
           model: Models.USER,
-          select: 'name image authId',
+          select: 'name image authId username',
         },
         {
           path: 'children',
@@ -347,7 +347,7 @@ export const fetchCommunityThreads = handleError(async ({ authOrganizationId }: 
           populate: {
             path: 'author',
             model: Models.USER,
-            select: 'image authId',
+            select: 'image authId username',
           },
         },
         {

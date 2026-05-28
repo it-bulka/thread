@@ -34,11 +34,12 @@ export const ThreadTab = async ({ ownerId, accountType, currentUserId }: IThread
           content={thread.text}
           author={
             accountType === 'user'
-              ? { name: result!.name, image: result!.image, authId: (result as IUserWithThreadsRes).authId }
+              ? { name: result!.name, image: result!.image, authId: (result as IUserWithThreadsRes).authId, username: (result as IUserWithThreadsRes).username }
               : {
                 name: thread.author.name,
                 image: thread.author.image,
                 authId: thread.author.authId,
+                username: thread.author.username,
               }
           }
           community={

@@ -55,7 +55,7 @@ export interface ICommunityRes {
   joinRequests: string[]
 }
 
-type Author = Pick<IUserRes, '_id' | 'authId' | 'image' | 'name'>
+type Author = Pick<IUserRes, '_id' | 'authId' | 'image' | 'name' | 'username'>
 
 type Community = {
   _id: string

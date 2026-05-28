@@ -29,6 +29,7 @@ export default async function ProfileIdTagged({ params }: { params: { id: string
             name: thread.author.name,
             image: thread.author.image,
             authId: thread.author.authId,
+            username: thread.author.username,
           }}
           community={thread.community}
           createdAt={thread.createdAt}

@@ -16,6 +16,7 @@ interface IThreadCardProps {
     name: string;
     image: string;
     authId: string;
+    username: string;
   }
   community?: {
     authOrganizationId: string;
@@ -64,6 +65,7 @@ export const ThreadCard = ({
                 <h4 className="cursor-pointer text-base-semibold text-bg-reverse-1">
                   {author.name}
                 </h4>
+                <p className='text-small-medium text-gray-1 opacity-50'>@{author.username}</p>
               </Link>
 
               <p className="text-subtle-medium text-bg-secondary-1">

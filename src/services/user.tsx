@@ -169,7 +169,7 @@ export const getLikedThreads = handleError(async (
     Thread.find({ likes: user._id })
       .skip(skip)
       .limit(pageSize)
-      .populate({ path: 'author', model: Models.USER, select: 'name image authId' })
+      .populate({ path: 'author', model: Models.USER, select: 'name image authId username' })
       .populate({ path: 'community', model: Models.COMMUNITY, select: 'authOrganizationId name image' })
       .populate({ path: 'children', populate: { path: 'author', model: Models.USER, select: 'image' } })
       .populate({ path: 'likes', model: Models.USER, select: 'authId' })
