@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { ThreadCard } from '@/components/cards/ThreadCard';
 import { ThreadList } from '@/components/shared/ThreadList';
 import { checkExistedUser } from '@/lib/utils';
@@ -5,6 +6,46 @@ import { getThreadById } from '@/services/thread';
 import { fetchCommunityDetails } from '@/services';
 import { CommentForm } from '@/components/forms/CommentForm';
 import { ErrorMessage } from '@/components/shared/ErrorMessage';
+
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000/').replace(/\/$/, '')
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const result = await getThreadById(params.id)
+
+  if (!result.ok || !result.data) {
+    return { title: 'Thread not found' }
+  }
+
+  const thread = result.data
+  const author = thread.author as any
+
+  const text = thread.text ?? ''
+  const shortText = text.length > 100 ? text.slice(0, 100) + '…' : text
+  const description = text.length > 200 ? text.slice(0, 200) + '…' : text
+  const title = `@${author.username}: ${shortText}`
+  const url = `${APP_URL}/thread/${params.id}`
+  const image: string | undefined = author.image
+
+  return {
+    title,
+    description,
+    openGraph: {
+      type: 'article',
+      title,
+      description,
+      url,
+      ...(image && {
+        images: [{ url: image, width: 400, height: 400, alt: `${author.name}'s avatar` }],
+      }),
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+      ...(image && { images: [image] }),
+    },
+  }
+}
 
 export default async function Thread ( { params } : {params:  { id: string } }) {
   const user = await checkExistedUser()
