@@ -5,7 +5,8 @@ import Image from 'next/image';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { formatDateString, cn } from '@/lib/utils';
 import { LikeButton } from '@/components/cards/LikeButton';
-import { MentionText } from '@/components/ui/MentionText';
+import { MentionText } from '@/components/ui/MentionText'
+import { DeleteThreadButton } from '@/components/cards/DeleteThreadButton';
 
 interface IThreadCardProps {
   id: string
@@ -121,7 +122,9 @@ export const ThreadCard = ({
           </div>
         </div>
 
-        {/* TODO: add delete thread */}
+        {currentUserId === author.authId && (
+          <DeleteThreadButton threadId={id} redirectTo='/' />
+        )}
       </div>
 
       {!isComment && comments.length > 0 && (

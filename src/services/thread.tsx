@@ -105,9 +105,10 @@ export const updateThread = handleError(async (params: IUpdateThread): Promise<I
 
 
 
-export const deleteThread = handleError(async ({ id }: { id: string }): Promise<void> => {
+export const deleteThread = handleError(async ({ id, path }: { id: string; path: string }): Promise<void> => {
   await connectToDb()
   await Thread.deleteOne({ _id: new Types.ObjectId(id)})
+  revalidatePath(path)
 },
   () => 'Failed to delete thread')
 
