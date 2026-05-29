@@ -8,6 +8,7 @@ import {
   onWhOrganisationMemberCreated,
   onWhOrganizationDelete,
   onWhOrganizationUpdate,
+  onWhUserDeleted,
   onWhUserUpdated,
 } from '@/services/webhooks';
 
@@ -54,6 +55,9 @@ export async function POST(req: Request) {
   const eventType = evt.type;
 
   switch (eventType) {
+    case 'user.deleted':
+      return await onWhUserDeleted({ authId: evt.data.id ?? '' })
+
     case 'user.updated':
       return await onWhUserUpdated({
         authId: evt.data.id,

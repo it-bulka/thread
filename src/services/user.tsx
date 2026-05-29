@@ -1,6 +1,6 @@
 'use server'
 import { connectToDb } from '@/db/connectToDb';
-import { User } from '@/models';
+import { Community, User } from '@/models';
 import { IActivityItem, ILikedThread, ISuggestedUser, IUserRes } from '@/types';
 import { FilterQuery, SortOrder } from 'mongoose';
 import { handleError } from '@/lib/handleError';
@@ -56,12 +56,69 @@ export const updateUser = handleError(async (userData: IUserUpdate): Promise<IUs
 interface IUserDelete {
   userId: string;
 }
-export const deleteUser = handleError(async ({ userId }: IUserDelete): Promise<void>  => {
+export const deleteUser = handleError(async ({ userId }: IUserDelete): Promise<void> => {
   await connectToDb()
 
-  await User.deleteOne({ authId: userId })
-},
-  () => 'Failed to delete user')
+  const user = await User.findOne({ authId: userId })
+  if (!user) return
+
+  await User.findOneAndUpdate({ authId: userId }, {
+    deleted: true,
+    deletedAt: new Date(),
+    name: 'Deleted Account',
+    username: `deleted_${userId}`,
+    image: '',
+    bio: '',
+  })
+
+  await Community.updateMany(
+    { $or: [{ members: user._id }, { joinRequests: user._id }] },
+    { $pull: { members: user._id, joinRequests: user._id } }
+  )
+
+  await Thread.updateMany(
+    { likes: user._id },
+    { $pull: { likes: user._id } }
+  )
+
+  if (user.image?.includes('utfs.io')) {
+    const fileKey = user.image.split('/f/')[1]
+    if (fileKey) await new UTApi().deleteFiles(fileKey).catch(console.error)
+  }
+
+  // Handle communities where this user is the sole owner
+  const ownedCommunities = await Community.find({ createdBy: user._id })
+    .populate({ path: 'members', model: Models.USER, select: '_id deleted' })
+
+  const { clerkClient } = await import('@clerk/nextjs/server')
+
+  for (const community of ownedCommunities) {
+    const activeMembers = (community.members as any[]).filter(
+      (m: any) => !m.deleted && !m._id.equals(user._id)
+    )
+
+    if (activeMembers.length > 0) {
+      await Community.findByIdAndUpdate(community._id, { createdBy: activeMembers[0]._id })
+    } else {
+      // No remaining members — delete via Clerk so organization.deleted webhook cleans DB
+      const deleted = await clerkClient.organizations
+        .deleteOrganization(community.authOrganizationId)
+        .catch(() => null)
+
+      // If Clerk org already gone, clean up DB directly
+      if (!deleted) {
+        const { deleteCommunity } = await import('@/services/communities')
+        await deleteCommunity(community.authOrganizationId)
+      }
+    }
+  }
+}, () => 'Failed to delete user')
+
+
+export const deleteCurrentUserAccount = handleError(async (authId: string): Promise<void> => {
+  const { clerkClient } = await import('@clerk/nextjs/server')
+  await clerkClient.users.deleteUser(authId)
+}, () => 'Failed to delete account')
 
 
 export const fetchUser = handleError(async (userId: string): Promise<IUserRes | null>  => {
@@ -121,7 +178,7 @@ export const getActivities = handleError(async (
 
   const childIds = userThreads.flatMap((t: any) => t.children)
   const replies = await Thread.find({ _id: { $in: childIds } })
-    .populate({ path: 'author', model: Models.USER, select: 'name image authId' })
+    .populate({ path: 'author', model: Models.USER, select: 'name image authId deleted' })
     .lean()
 
   const replyActivities: IActivityItem[] = replies
@@ -188,7 +245,7 @@ export const getLikedThreads = handleError(async (
     Thread.find({ likes: user._id })
       .skip(skip)
       .limit(pageSize)
-      .populate({ path: 'author', model: Models.USER, select: 'name image authId username' })
+      .populate({ path: 'author', model: Models.USER, select: 'name image authId username deleted' })
       .populate({ path: 'community', model: Models.COMMUNITY, select: 'authOrganizationId name image' })
       .populate({ path: 'children', populate: { path: 'author', model: Models.USER, select: 'image' } })
       .populate({ path: 'likes', model: Models.USER, select: 'authId' })

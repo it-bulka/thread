@@ -10,6 +10,8 @@ interface IUser {
   threads: Types.ObjectId[]
   onboarded: Boolean
   communities: Types.ObjectId[]
+  deleted: boolean
+  deletedAt?: Date
 }
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -45,6 +47,13 @@ const userSchema = new mongoose.Schema<IUser>({
       ref: Models.COMMUNITY,
     },
   ],
+  deleted: {
+    type: Boolean,
+    default: false,
+  },
+  deletedAt: {
+    type: Date,
+  },
 });
 
 const User = mongoose.models?.User as mongoose.Model<IUser> || mongoose.model<IUser>(Models.USER, userSchema);

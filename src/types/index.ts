@@ -8,6 +8,7 @@ export interface IUserRes {
   threads: string[]
   onboarded: Boolean
   communities: string[]
+  deleted?: boolean
 }
 
 
@@ -55,7 +56,7 @@ export interface ICommunityRes {
   joinRequests: string[]
 }
 
-type Author = Pick<IUserRes, '_id' | 'authId' | 'image' | 'name' | 'username'>
+type Author = Pick<IUserRes, '_id' | 'authId' | 'image' | 'name' | 'username' | 'deleted'>
 
 type Community = {
   _id: string
