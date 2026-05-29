@@ -18,6 +18,7 @@ const communitySchema = new mongoose.Schema<ICommunity>({
   authOrganizationId: {
     type: String,
     required: true,
+    unique: true,
   },
   username: {
     type: String,
