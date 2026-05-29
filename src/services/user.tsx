@@ -7,6 +7,7 @@ import { handleError } from '@/lib/handleError';
 import Thread from '@/models/thread';
 import { Models } from '@/consts';
 import { toPlain } from '@/lib/utils';
+import { UTApi } from 'uploadthing/server';
 
 interface IUserUpdate {
   authId: string;
@@ -14,7 +15,18 @@ interface IUserUpdate {
   name: string;
   bio: string;
   image: string;
+  oldImage?: string;
 }
+interface IUserImageSync {
+  authId: string;
+  image: string;
+}
+export const syncUserImageFromClerk = handleError(async ({ authId, image }: IUserImageSync): Promise<void> => {
+  await connectToDb()
+  await User.findOneAndUpdate({ authId }, { image })
+}, () => 'Failed to sync user image from Clerk')
+
+
 export const updateUser = handleError(async (userData: IUserUpdate): Promise<IUserRes>  => {
   await connectToDb()
   const user = await User.findOneAndUpdate(
@@ -28,6 +40,13 @@ export const updateUser = handleError(async (userData: IUserUpdate): Promise<IUs
     },
     { upsert: true, new: true }
   )
+
+  if (userData.oldImage?.includes('utfs.io')) {
+    const fileKey = userData.oldImage.split('/f/')[1]
+    if (fileKey) {
+      await new UTApi().deleteFiles(fileKey).catch(console.error)
+    }
+  }
 
   return toPlain<IUserRes>(user)
 },

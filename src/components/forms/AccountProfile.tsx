@@ -5,6 +5,8 @@ import { z } from "zod"
 import { ChangeEvent, useState } from 'react';
 import { updateUser } from '@/services';
 
+const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4 MB — matches maxFileSize in uploadthing/core.ts
+
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -53,7 +55,6 @@ export const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
   const onSubmit: SubmitHandler<z.infer<typeof UserValidation>> = async (data) => {
     const { authId } = user
     const { username, name, bio } = data
-    /* TODO: delete old photo profile */
     if (img) {
       const imgRes = await startUpload([img])
       const fileUrl = imgRes?.[0].url
@@ -68,12 +69,15 @@ export const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
       name,
       bio,
       image: data.profile_photo,
+      oldImage: img ? user.image : undefined,
     })
 
     if (!result.ok) {
       toast.error(result.error)
       return
     }
+
+    toast.success('Profile updated successfully.')
 
     if (pathname === Pages.PROFILE_EDIT) {
       router.back()
@@ -90,6 +94,13 @@ export const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
 
     if (!file || !file.type.includes("image")) return
 
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('Image is too large. Maximum size is 4 MB.')
+      e.target.value = ''
+      return
+    }
+
+    setImg(file)
     const reader = new FileReader();
     reader.onloadend = function () {
       const base64data = reader.result?.toString() || '';
@@ -117,7 +128,7 @@ export const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
                     width={96}
                     height={96}
                     priority
-                    className='rounded-full object-contain'
+                    className='h-24 w-24 rounded-full object-contain'
                   />
                 ) : (
                   <Image
@@ -202,8 +213,8 @@ export const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
           )}
         />
 
-        <Button type='submit' className='bg-primary-500'>
-          {btnTitle}
+        <Button type='submit' className='bg-primary-500' disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? 'Loading...' : btnTitle}
         </Button>
       </form>
     </Form>
