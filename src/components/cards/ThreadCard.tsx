@@ -20,6 +20,7 @@ interface IThreadCardProps {
     image: string;
     authId: string;
     username: string;
+    deleted?: boolean;
   }
   community?: {
     authOrganizationId: string;
@@ -49,15 +50,27 @@ export const ThreadCard = ({
     <div className='flex items-start justify-between'>
       <div className='flex w-full flex-1 flex-row gap-4'>
         <div className='flex flex-col items-center'>
-          <Link href={`${Pages.PROFILE}/${author.authId}`} className='relative h-11 w-11'>
-            <UserAvatar
-              src={author.image}
-              alt='user_community_image'
-              fill
-              sizes="100%"
-              className='cursor-pointer rounded-full'
-            />
-          </Link>
+          {author.deleted ? (
+            <div className='relative h-11 w-11'>
+              <UserAvatar
+                src=''
+                alt='deleted user'
+                fill
+                sizes="100%"
+                className='rounded-full opacity-40'
+              />
+            </div>
+          ) : (
+            <Link href={`${Pages.PROFILE}/${author.authId}`} className='relative h-11 w-11'>
+              <UserAvatar
+                src={author.image}
+                alt='user_community_image'
+                fill
+                sizes="100%"
+                className='cursor-pointer rounded-full'
+              />
+            </Link>
+          )}
           <div className='thread-card_bar' />
         </div>
 
@@ -78,7 +91,7 @@ export const ThreadCard = ({
         </div>
       </div>
 
-      {currentUserId === author.authId && (
+      {!author.deleted && currentUserId === author.authId && (
         <DeleteThreadButton threadId={id} onDelete={onDelete} />
       )}
     </div>
