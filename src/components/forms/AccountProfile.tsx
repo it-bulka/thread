@@ -79,9 +79,7 @@ export const AccountProfile = ({ user, btnTitle }: AccountProfileProps) => {
 
     toast.success('Profile updated successfully.')
 
-    if (pathname === Pages.PROFILE_EDIT) {
-      router.back()
-    } else {
+    if (pathname !== Pages.PROFILE_EDIT) {
       router.push(Pages.HOME)
     }
   }
