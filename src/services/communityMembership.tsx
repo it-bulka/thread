@@ -6,6 +6,7 @@ import { Types } from 'mongoose';
 import { Community, User } from '@/models';
 import { handleError } from '@/lib/handleError';
 import { revalidatePath } from 'next/cache';
+import { clerkClient } from '@clerk/nextjs/server';
 
 
 export interface IAddMemberToCommunity {
@@ -20,12 +21,12 @@ export const addMemberToCommunity = handleError(async ({ communityId, memberId }
   const user = await User.findOne({ authId: memberId });
   if (!user) throw new Error('User not found')
 
-  if (community.members.includes(user._id)) throw new Error('User is already a member of the community')
+  if (community.members.includes(user._id)) return community
 
-  community.members.push(user._id);
-  await community.save();
-  user.communities.push(community._id);
-  await user.save();
+  await Promise.all([
+    Community.updateOne({ _id: community._id }, { $addToSet: { members: user._id } }),
+    User.updateOne({ _id: user._id }, { $addToSet: { communities: community._id } }),
+  ])
 
   return community;
 },
@@ -78,18 +79,16 @@ export const checkCommunityAccess = handleError(
     await connectToDb()
 
     const [community, user] = await Promise.all([
-      Community.findOne({ authOrganizationId: communityAuthId }).select('_id isPrivate joinRequests'),
+      Community.findOne({ authOrganizationId: communityAuthId }).select('_id isPrivate members joinRequests'),
       User.findOne({ authId: userAuthId }).select('_id'),
     ])
     if (!community) throw new Error('Community not found')
     if (!user) throw new Error('User not found')
 
-    const [memberDoc, hasPendingRequest] = await Promise.all([
-      Community.exists({ _id: community._id, members: user._id }),
-      Promise.resolve(community.joinRequests.some((r: Types.ObjectId) => r.equals(user._id))),
-    ])
+    const isMember = community.members.some((m: Types.ObjectId) => m.equals(user._id))
+    const hasPendingRequest = community.joinRequests.some((r: Types.ObjectId) => r.equals(user._id))
 
-    return { isPrivate: community.isPrivate, isMember: !!memberDoc, hasPendingRequest }
+    return { isPrivate: community.isPrivate, isMember, hasPendingRequest }
   },
   () => 'Failed to check community access'
 )
@@ -104,13 +103,13 @@ export const requestToJoin = handleError(async ({ communityId, userId }: IManage
   await connectToDb()
 
   const [community, user] = await Promise.all([
-    Community.findOne({ authOrganizationId: communityId }).select('_id isPrivate joinRequests'),
+    Community.findOne({ authOrganizationId: communityId }).select('_id isPrivate members joinRequests'),
     User.findOne({ authId: userId }).select('_id'),
   ])
   if (!community) throw new Error('Community not found')
   if (!user) throw new Error('User not found')
 
-  const alreadyMember = await Community.exists({ _id: community._id, members: user._id })
+  const alreadyMember = community.members.some((m: mongoose.Types.ObjectId) => m.equals(user._id))
   if (alreadyMember) throw new Error('Already a member of this community')
 
   if (!community.isPrivate) {
@@ -118,6 +117,11 @@ export const requestToJoin = handleError(async ({ communityId, userId }: IManage
       Community.updateOne({ _id: community._id }, { $addToSet: { members: user._id } }),
       User.updateOne({ _id: user._id }, { $addToSet: { communities: community._id } }),
     ])
+    await clerkClient.organizations.createOrganizationMembership({
+      organizationId: communityId,
+      userId,
+      role: 'org:member',
+    })
     revalidatePath(`/communities/${communityId}`)
     return
   }
@@ -156,6 +160,12 @@ export const approveRequest = handleError(async ({ communityId, userId }: IManag
     await session.commitTransaction()
     await session.endSession()
 
+    await clerkClient.organizations.createOrganizationMembership({
+      organizationId: communityId,
+      userId,
+      role: 'org:member',
+    })
+
     revalidatePath(`/communities/${communityId}`)
   } catch (err) {
     await session.abortTransaction()
@@ -183,3 +193,47 @@ export const denyRequest = handleError(async ({ communityId, userId }: IManageRe
   revalidatePath(`/communities/${communityId}`)
 },
   () => 'Failed to deny request')
+
+
+export const cancelJoinRequest = handleError(async ({ communityId, userId }: IManageRequest): Promise<void> => {
+  await connectToDb()
+
+  const [community, user] = await Promise.all([
+    Community.findOne({ authOrganizationId: communityId }).select('_id joinRequests'),
+    User.findOne({ authId: userId }).select('_id'),
+  ])
+  if (!community) throw new Error('Community not found')
+  if (!user) throw new Error('User not found')
+
+  const hasPending = community.joinRequests.some((r: Types.ObjectId) => r.equals(user._id))
+  if (!hasPending) throw new Error('No pending request found')
+
+  await Community.updateOne({ _id: community._id }, { $pull: { joinRequests: user._id } })
+  revalidatePath(`/communities/${communityId}`)
+},
+  () => 'Failed to cancel join request')
+
+
+export const leaveCommunity = handleError(async ({ communityId, userId }: IDeleteMemberFromCommunity): Promise<void> => {
+  await connectToDb()
+
+  const [community, user] = await Promise.all([
+    Community.findOne({ authOrganizationId: communityId }).select('_id'),
+    User.findOne({ authId: userId }).select('_id'),
+  ])
+  if (!community) throw new Error('Community not found')
+  if (!user) throw new Error('Member not found')
+
+  await Promise.all([
+    Community.updateOne({ _id: community._id }, { $pull: { members: user._id } }),
+    User.updateOne({ _id: user._id }, { $pull: { communities: community._id } }),
+  ])
+
+  await clerkClient.organizations.deleteOrganizationMembership({
+    organizationId: communityId,
+    userId,
+  })
+
+  revalidatePath(`/communities/${communityId}`)
+},
+  () => 'Failed to leave community')
