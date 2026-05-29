@@ -5,8 +5,10 @@ import {
   onWhDeleteMemberFromOrganization,
   onWhOrganisationCreated,
   onWhOrganisationInvitationCreated,
-  onWhOrganisationMemberCreated, onWhOrganizationDelete,
-  onWhOrganizationUpdate
+  onWhOrganisationMemberCreated,
+  onWhOrganizationDelete,
+  onWhOrganizationUpdate,
+  onWhUserUpdated,
 } from '@/services/webhooks';
 
 export async function POST(req: Request) {
@@ -52,6 +54,12 @@ export async function POST(req: Request) {
   const eventType = evt.type;
 
   switch (eventType) {
+    case 'user.updated':
+      return await onWhUserUpdated({
+        authId: evt.data.id,
+        image: evt.data.image_url,
+      })
+
     case "organization.created":
       const { id, name, image_url, logo_url, created_by, slug } = evt.data;
       return await onWhOrganisationCreated({

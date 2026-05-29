@@ -1,7 +1,19 @@
 import { createCommunity, deleteCommunity, type ICreateCommunity, IUpdateCommunityInfo, updateCommunityInfo } from '@/services/communities';
 import { addMemberToCommunity, deleteMemberFromCommunity, IAddMemberToCommunity, IDeleteMemberFromCommunity } from '@/services/communityMembership';
+import { syncUserImageFromClerk } from '@/services/user';
 import { NextResponse } from 'next/server';
 import { handleApiError } from '@/lib/handleError';
+
+interface IUserUpdated {
+  authId: string;
+  image: string;
+}
+export const onWhUserUpdated = handleApiError(async (params: IUserUpdated) => {
+  const result = await syncUserImageFromClerk(params)
+  if (!result.ok) return NextResponse.json({ message: result.error }, { status: 500 })
+  return NextResponse.json({ message: "User updated" }, { status: 200 })
+})
+
 
 export const onWhOrganisationCreated = handleApiError(async (params: ICreateCommunity) => {
   const result = await createCommunity(params)
