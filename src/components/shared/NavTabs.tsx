@@ -23,7 +23,7 @@ export const NavTabs = ({ tabs }: { tabs: INavTab[] }) => (
           tab.isActive ? 'bg-[#0e0e12]' : 'bg-bg-2'
         )}
       >
-        <Image src={tab.icon} alt={tab.label} width={24} height={24} className='object-contain' />
+        <Image src={tab.icon} alt={tab.label} width={24} height={24} className='h-6 w-6 object-contain' />
         <p className='hidden md:block'>{tab.label}</p>
         {tab.badge != null && <TabBadge count={tab.badge} />}
       </Link>

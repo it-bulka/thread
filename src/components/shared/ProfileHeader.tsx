@@ -25,6 +25,7 @@ export const ProfileHeader = ({ currentUserId, authUserId, name, username, imgUr
               alt='logo'
               fill
               sizes="100%"
+              priority
               className='rounded-full object-cover shadow-2xl'
             />
           </div>
@@ -44,6 +45,7 @@ export const ProfileHeader = ({ currentUserId, authUserId, name, username, imgUr
                 alt='logout'
                 width={16}
                 height={16}
+                className='h-4 w-4'
               />
 
               <p className='text-bg-reverse-2 hidden md:block'>Edit</p>

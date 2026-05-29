@@ -36,7 +36,7 @@ export const ActivityTabs = () => {
               alt={tab.label}
               width={20}
               height={20}
-              className={cn('object-contain transition-opacity', !isActive && 'opacity-50')}
+              className={cn('h-5 w-5 object-contain transition-opacity', !isActive && 'opacity-50')}
             />
             <p className='hidden md:block'>{tab.label}</p>
           </Link>

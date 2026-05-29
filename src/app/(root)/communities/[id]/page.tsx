@@ -71,7 +71,7 @@ export default async function Community ({ params }: {params: { id: string }}) {
                   alt={tab.label}
                   width={24}
                   height={24}
-                  className='object-contain'
+                  className='h-6 w-6 object-contain'
                 />
                 <p className='hidden md:block'>{tab.label}</p>
 
