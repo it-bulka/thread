@@ -139,10 +139,29 @@ export const deleteCommunity = handleError(async (communityId: string): Promise<
 })
 
 
+export interface IUserMemberCommunity {
+  authOrganizationId: string
+  name: string
+  image: string
+}
+
+export const fetchUserMemberCommunities = handleError(async (userAuthId: string): Promise<IUserMemberCommunity[]> => {
+  await connectToDb()
+  const user = await User.findOne({ authId: userAuthId })
+    .select('communities')
+    .populate({ path: 'communities', model: Models.COMMUNITY, select: 'authOrganizationId name image' })
+    .lean()
+  if (!user) return []
+  return toPlain<IUserMemberCommunity[]>(user.communities as IUserMemberCommunity[])
+},
+  () => 'Failed to fetch user communities'
+)
+
+
 export const fetchSuggestedCommunities = handleError(async (userAuthId: string): Promise<ISuggestedCommunity[]> => {
   await connectToDb()
 
-  const user = await User.findOne({ authId: userAuthId }).select('_id')
+  const user = await User.findOne({ authId: userAuthId }).select('_id').lean()
   if (!user) return []
 
   const communities = await Community.find({

@@ -10,14 +10,19 @@ import { Button } from '@/components/ui/button';
 import { createThread } from '@/services/thread';
 import { checkCommunityAccess } from '@/services/communityMembership';
 import { usePathname } from 'next/navigation';
-import { useOrganization } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { Pages } from '@/consts';
 import { toast } from 'sonner';
 import { ICommunityAccessStatus } from '@/types';
 import { PrivateCommunityGate } from '@/components/shared/PrivateCommunityGate';
+import { IUserMemberCommunity } from '@/services/communities';
 
-export const ThreadForm = ({ authorId }: { authorId: string }) => {
+interface IThreadFormProps {
+  authorId: string
+  communities: IUserMemberCommunity[]
+}
+
+export const ThreadForm = ({ authorId, communities }: IThreadFormProps) => {
   const form = useForm<z.infer<typeof ThreadValidation>>({
     resolver: zodResolver(ThreadValidation),
     defaultValues: { thread: '', authorId }
@@ -25,24 +30,26 @@ export const ThreadForm = ({ authorId }: { authorId: string }) => {
 
   const pathname = usePathname()
   const router = useRouter()
-  const { organization } = useOrganization()
 
+  const [selectedCommunityId, setSelectedCommunityId] = useState<string | null>(null)
   const [accessStatus, setAccessStatus] = useState<ICommunityAccessStatus | null>(null)
   const [gateOpen, setGateOpen] = useState(false)
   const [, startAccessCheck] = useTransition()
 
   useEffect(() => {
-    if (!organization?.id) {
+    if (!selectedCommunityId) {
       setAccessStatus(null)
       return
     }
     startAccessCheck(async () => {
-      const result = await checkCommunityAccess({ communityAuthId: organization.id, userAuthId: authorId })
+      const result = await checkCommunityAccess({ communityAuthId: selectedCommunityId, userAuthId: authorId })
       if (result.ok) setAccessStatus(result.data)
     })
-  }, [organization?.id, authorId])
+  }, [selectedCommunityId, authorId])
 
   const isBlocked = accessStatus?.isPrivate && !accessStatus?.isMember
+
+  const selectedCommunity = communities.find(c => c.authOrganizationId === selectedCommunityId) ?? null
 
   const onSubmit: SubmitHandler<z.infer<typeof ThreadValidation>> = async (value) => {
     if (isBlocked) {
@@ -54,7 +61,7 @@ export const ThreadForm = ({ authorId }: { authorId: string }) => {
       text: value.thread,
       author: value.authorId,
       path: pathname,
-      communityId: organization?.id || undefined
+      communityId: selectedCommunityId ?? undefined
     })
 
     if (!result.ok) {
@@ -69,6 +76,24 @@ export const ThreadForm = ({ authorId }: { authorId: string }) => {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
+          {communities.length > 0 && (
+            <div className='mb-4 flex flex-col gap-3'>
+              <label className='text-base-semibold text-bg-reverse-2'>Post to</label>
+              <select
+                value={selectedCommunityId ?? ''}
+                onChange={e => setSelectedCommunityId(e.target.value || null)}
+                className='no-focus border border-dark-4 bg-bg-3 text-bg-reverse-1 rounded px-3 py-2 w-full'
+              >
+                <option value=''>Personal (no community)</option>
+                {communities.map(c => (
+                  <option key={c.authOrganizationId} value={c.authOrganizationId}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {isBlocked ? (
             <div className='flex flex-col items-center gap-4 py-10 text-center'>
               <span className='text-4xl'>🔒</span>
@@ -109,10 +134,10 @@ export const ThreadForm = ({ authorId }: { authorId: string }) => {
         </form>
       </Form>
 
-      {isBlocked && organization && (
+      {isBlocked && selectedCommunity && (
         <PrivateCommunityGate
-          communityAuthId={organization.id}
-          communityName={organization.name ?? organization.id}
+          communityAuthId={selectedCommunity.authOrganizationId}
+          communityName={selectedCommunity.name}
           currentUserAuthId={authorId}
           hasPendingRequest={accessStatus?.hasPendingRequest ?? false}
           open={gateOpen}
