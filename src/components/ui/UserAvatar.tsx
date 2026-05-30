@@ -16,6 +16,7 @@ export const UserAvatar = ({ src, defaultSrc = userDefaultImage, ...props }: IUs
 
   return (
     <Image
+      alt=''
       {...props}
       src={imgSrc}
       onError={() => setImgSrc(defaultSrc)}

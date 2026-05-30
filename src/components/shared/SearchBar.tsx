@@ -24,7 +24,7 @@ export const SearchBar = (props: ISearchBarProps) => {
     }
 
     return () => clearTimeout(debounce)
-  }, [search])
+  }, [search, props.path, router, searchParams])
 
   return (
     <div className='searchbar'>
