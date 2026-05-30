@@ -48,7 +48,7 @@ export const DeleteAccountButton = ({ authId }: IDeleteAccountButtonProps) => {
         <DialogHeader>
           <DialogTitle className='text-bg-reverse-1'>Delete account?</DialogTitle>
           <DialogDescription className='text-bg-secondary-1'>
-            This action cannot be undone. Your account will be permanently deleted, and your threads will remain marked as "Account deleted".
+            This action cannot be undone. Your account will be permanently deleted, and your threads will remain marked as &quot;Account deleted&quot;.
           </DialogDescription>
         </DialogHeader>
 
