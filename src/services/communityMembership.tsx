@@ -1,5 +1,6 @@
 'use server'
 import { ICommunityAccessStatus, ICommunityRes } from '@/types';
+import { toPlain } from '@/lib/utils';
 import { connectToDb } from '@/db/connectToDb';
 import mongoose from 'mongoose';
 import { Types } from 'mongoose';
@@ -21,14 +22,14 @@ export const addMemberToCommunity = handleError(async ({ communityId, memberId }
   const user = await User.findOne({ authId: memberId });
   if (!user) throw new Error('User not found')
 
-  if (community.members.includes(user._id)) return community
+  if (community.members.includes(user._id)) return toPlain<ICommunityRes>(community)
 
   await Promise.all([
     Community.updateOne({ _id: community._id }, { $addToSet: { members: user._id } }),
     User.updateOne({ _id: user._id }, { $addToSet: { communities: community._id } }),
   ])
 
-  return community;
+  return toPlain<ICommunityRes>(community);
 },
   () => 'Failed to add member community')
 

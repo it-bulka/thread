@@ -82,7 +82,7 @@ export const updateThread = handleError(async (params: IUpdateThread): Promise<I
   const { threadId, text, author, communityId, path } = params
   await connectToDb()
 
-  const community = communityId && await Community.findOne({ _id: new Types.ObjectId(communityId!)})
+  const community = communityId ? await Community.findOne({ _id: new Types.ObjectId(communityId) }) : null
 
   const updatedField: Partial<IThread> = { text, author: new Types.ObjectId(author)}
   community?._id && (updatedField.community = community?._id )

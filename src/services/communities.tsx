@@ -82,7 +82,7 @@ export const createCommunity = handleError(async ({ createdById, name, username,
   })
 
   /* communities id into user is added via webhook 'organizationMembership.created' */
-  return newCommunity
+  return toPlain<ICommunityRes>(newCommunity)
 },
   () => 'Failed to create community')
 
@@ -129,8 +129,6 @@ export const deleteCommunity = handleError(async (communityId: string): Promise<
 
     await session.commitTransaction()
     await session.endSession()
-
-    return deletedCommunity;
   } catch (error) {
     await session.abortTransaction();
     await session.endSession();
@@ -152,7 +150,7 @@ export const fetchUserMemberCommunities = handleError(async (userAuthId: string)
     .populate({ path: 'communities', model: Models.COMMUNITY, select: 'authOrganizationId name image' })
     .lean()
   if (!user) return []
-  return toPlain<IUserMemberCommunity[]>(user.communities as IUserMemberCommunity[])
+  return toPlain<IUserMemberCommunity[]>(user.communities)
 },
   () => 'Failed to fetch user communities'
 )

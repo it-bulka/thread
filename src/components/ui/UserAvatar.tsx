@@ -7,7 +7,7 @@ interface IUserAvatarProps extends Omit<ImageProps, 'onError'> {
   defaultSrc?: ImageProps['src']
 }
 
-export const UserAvatar = ({ src, defaultSrc = userDefaultImage, ...props }: IUserAvatarProps) => {
+export const UserAvatar = ({ src, defaultSrc = userDefaultImage, alt = '', ...props }: IUserAvatarProps) => {
   const [imgSrc, setImgSrc] = useState<ImageProps['src']>(src || defaultSrc)
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export const UserAvatar = ({ src, defaultSrc = userDefaultImage, ...props }: IUs
 
   return (
     <Image
-      alt=''
+      alt={alt}
       {...props}
       src={imgSrc}
       onError={() => setImgSrc(defaultSrc)}
